@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { useUsers } from "@/hooks/useUsers";
 import { useHotels } from "@/hooks/useHotels";
-import { User, UserRole } from "@/types";
+import { User, UserRole, CreateUserDto } from "@/types";
 
 const userSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -115,7 +115,7 @@ export function UserFormDialog({
     }
 
     // Type assertion pour éviter l'erreur TypeScript
-    const createData = submitData as any;
+    const createData = submitData as CreateUserDto;
 
     if (isEditing && user) {
       updateUser(

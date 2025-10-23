@@ -1,7 +1,7 @@
 // src/hooks/useProfiles.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { profilesService } from "../services/profiles.service";
-import { CreateProfileDto, UpdateProfileDto } from "../types";
+import { CreateProfileDto, UpdateProfileDto, Profile } from "../types";
 import { toast } from "sonner";
 
 export const useProfiles = (page = 1, limit = 10) => {
@@ -20,9 +20,11 @@ export const useProfiles = (page = 1, limit = 10) => {
       toast.success("Profil créé avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage ||
-          "Erreur lors de la création"
+        axiosError.response?.data?.errorMessage || "Erreur lors de la création"
       );
     },
   });
@@ -36,7 +38,7 @@ export const useProfiles = (page = 1, limit = 10) => {
 
       // Mettre à jour le profile dans toutes les listes paginées
       queryClient.setQueriesData<{
-        data: any[];
+        data: Profile[];
         pagination: {
           total: number;
           page: number;
@@ -56,8 +58,11 @@ export const useProfiles = (page = 1, limit = 10) => {
       toast.success("Profil modifié avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage ||
+        axiosError.response?.data?.errorMessage ||
           "Erreur lors de la modification"
       );
     },
@@ -68,7 +73,7 @@ export const useProfiles = (page = 1, limit = 10) => {
     onSuccess: (_, deletedId) => {
       // Retirer le profile de toutes les listes paginées
       queryClient.setQueriesData<{
-        data: any[];
+        data: Profile[];
         pagination: {
           total: number;
           page: number;
@@ -89,8 +94,11 @@ export const useProfiles = (page = 1, limit = 10) => {
       toast.success("Profil supprimé avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage ||
+        axiosError.response?.data?.errorMessage ||
           "Erreur lors de la suppression"
       );
     },

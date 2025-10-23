@@ -1,7 +1,7 @@
 // src/hooks/useHotels.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { hotelsService } from "../services/hotels.service";
-import { CreateHotelDto, UpdateHotelDto } from "../types";
+import { CreateHotelDto, UpdateHotelDto, Hotel } from "../types";
 import { toast } from "sonner";
 
 export const useHotels = (page = 1, limit = 10) => {
@@ -22,8 +22,11 @@ export const useHotels = (page = 1, limit = 10) => {
       toast.success("Hôtel créé avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage || "Erreur lors de la création"
+        axiosError.response?.data?.errorMessage || "Erreur lors de la création"
       );
     },
   });
@@ -34,29 +37,38 @@ export const useHotels = (page = 1, limit = 10) => {
     onSuccess: (updatedHotel) => {
       // Mettre à jour le cache de l'hotel individuel
       queryClient.setQueryData(["hotel", updatedHotel.id], updatedHotel);
-      
+
       // Mettre à jour l'hotel dans toutes les listes paginées
-      queryClient.setQueriesData<{ data: any[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
-        { queryKey: ["hotels"] },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.map((hotel) =>
-              hotel.id === updatedHotel.id ? updatedHotel : hotel
-            ),
-          };
-        }
-      );
-      
+      queryClient.setQueriesData<{
+        data: Hotel[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["hotels"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((hotel) =>
+            hotel.id === updatedHotel.id ? updatedHotel : hotel
+          ),
+        };
+      });
+
       // Invalider les stats SaaS car le statut/plan peut avoir changé
       queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
-      
+
       toast.success("Hôtel modifié avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage || "Erreur lors de la modification"
+        axiosError.response?.data?.errorMessage ||
+          "Erreur lors de la modification"
       );
     },
   });
@@ -65,28 +77,37 @@ export const useHotels = (page = 1, limit = 10) => {
     mutationFn: (id: string) => hotelsService.delete(id),
     onSuccess: (_, deletedId) => {
       // Retirer l'hotel de toutes les listes paginées
-      queryClient.setQueriesData<{ data: any[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
-        { queryKey: ["hotels"] },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.filter((hotel) => hotel.id !== deletedId),
-          };
-        }
-      );
-      
+      queryClient.setQueriesData<{
+        data: Hotel[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["hotels"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.filter((hotel) => hotel.id !== deletedId),
+        };
+      });
+
       // Supprimer du cache individuel
       queryClient.removeQueries({ queryKey: ["hotel", deletedId] });
-      
+
       // Invalider les stats SaaS
       queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
-      
+
       toast.success("Hôtel supprimé avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage || "Erreur lors de la suppression"
+        axiosError.response?.data?.errorMessage ||
+          "Erreur lors de la suppression"
       );
     },
   });

@@ -1,7 +1,7 @@
 // src/hooks/useUsers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usersService } from "../services/users.service";
-import { CreateUserDto, UpdateUserDto } from "../types";
+import { CreateUserDto, UpdateUserDto, User } from "../types";
 import { toast } from "sonner";
 
 export const useUsers = (page = 1, limit = 10) => {
@@ -22,9 +22,11 @@ export const useUsers = (page = 1, limit = 10) => {
       toast.success("Utilisateur créé avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage ||
-          "Erreur lors de la création"
+        axiosError.response?.data?.errorMessage || "Erreur lors de la création"
       );
     },
   });
@@ -38,7 +40,7 @@ export const useUsers = (page = 1, limit = 10) => {
 
       // Mettre à jour l'user dans toutes les listes paginées
       queryClient.setQueriesData<{
-        data: any[];
+        data: User[];
         pagination: {
           total: number;
           page: number;
@@ -61,8 +63,11 @@ export const useUsers = (page = 1, limit = 10) => {
       toast.success("Utilisateur modifié avec succès");
     },
     onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        (error as any).response?.data?.errorMessage ||
+        axiosError.response?.data?.errorMessage ||
           "Erreur lors de la modification"
       );
     },
@@ -73,7 +78,7 @@ export const useUsers = (page = 1, limit = 10) => {
     onSuccess: (_, deletedId) => {
       // Retirer l'user de toutes les listes paginées
       queryClient.setQueriesData<{
-        data: any[];
+        data: User[];
         pagination: {
           total: number;
           page: number;
@@ -96,9 +101,13 @@ export const useUsers = (page = 1, limit = 10) => {
 
       toast.success("Utilisateur supprimé avec succès");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { data?: { errorMessage?: string } };
+      };
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la suppression"
+        axiosError.response?.data?.errorMessage ||
+          "Erreur lors de la suppression"
       );
     },
   });

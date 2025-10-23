@@ -58,10 +58,16 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as any;
+    const originalRequest = error.config as
+      | (typeof error.config & { _retry?: boolean })
+      | undefined;
 
     // Si erreur 401 et pas déjà tenté de refresh
-    if (error.response?.status === 401 && !originalRequest?._retry) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -76,7 +82,7 @@ api.interceptors.response.use(
         });
 
         const newToken = response.headers["authorization"]?.substring(7);
-        if (newToken) {
+        if (newToken && originalRequest) {
           localStorage.setItem("accessToken", newToken);
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
