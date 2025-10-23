@@ -16,6 +16,9 @@ RUN npm ci || (echo "npm ci failed, trying npm install..." && npm install)
 # Copier le code source
 COPY . .
 
+# Copier les variables d'environnement de production
+COPY env.production .env
+
 # Build l'application pour la production
 RUN npm run build
 

@@ -140,17 +140,17 @@ export function DashboardPage() {
   return (
     <div>
       <Header title="Dashboard SaaS" />
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* En-tête */}
         <div>
-          <h2 className="text-3xl font-bold">Vue d'ensemble des activités</h2>
-          <p className="mt-2 text-muted-foreground">
+          <h2 className="text-2xl sm:text-3xl font-bold">Vue d'ensemble des activités</h2>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted-foreground">
             Métriques clés pour le suivi de votre business
           </p>
         </div>
 
         {/* KPIs Principaux - Toujours visibles */}
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Clients Actifs"
             value={stats.activeHotels || 0}
@@ -214,7 +214,7 @@ export function DashboardPage() {
           </CardHeader>
           {openSections.clients && (
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                   title="Total Hôtels"
                   value={stats.totalHotels || 0}
@@ -283,7 +283,7 @@ export function DashboardPage() {
           </CardHeader>
           {openSections.users && (
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <StatCard
                   title="Total Utilisateurs"
                   value={stats.totalUsers || 0}
@@ -342,7 +342,7 @@ export function DashboardPage() {
           </CardHeader>
           {openSections.revenue && (
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <StatCard
                   title="ARR (Annuel)"
                   value={`${(stats.arr || 0).toLocaleString("fr-FR")} €`}
@@ -404,7 +404,7 @@ export function DashboardPage() {
           </CardHeader>
           {openSections.performance && (
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 <StatCard
                   title="Taux de Churn"
                   value={`${stats.churnRate || 0}%`}
@@ -426,13 +426,13 @@ export function DashboardPage() {
         </Card>
 
         {/* Répartition par plan avec graphique */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Répartition par Plan d'Abonnement</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Répartition par Plan d'Abonnement</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-2">
                 <PlanCard plan="FREE" count={stats.planCounts?.free || 0} />
                 <PlanCard
                   plan="STARTER"
@@ -518,7 +518,7 @@ export function DashboardPage() {
         </Card>
 
         {/* Graphiques */}
-        <div className="grid gap-6 md:grid-cols-1">
+        <div className="space-y-4 sm:space-y-6">
           <FinancialChart />
           <ActivityChart />
         </div>

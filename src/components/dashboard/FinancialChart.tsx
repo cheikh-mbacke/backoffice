@@ -63,16 +63,17 @@ export function FinancialChart() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Évolution MRR & Clients
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <DollarSign className="h-5 w-5 flex-shrink-0" />
+            <span>Évolution MRR & Clients</span>
           </CardTitle>
           <div className="flex gap-2">
             <Button
               variant={period === "6m" ? "default" : "outline"}
               size="sm"
               onClick={() => setPeriod("6m")}
+              className="text-xs sm:text-sm"
             >
               6 mois
             </Button>
@@ -80,12 +81,13 @@ export function FinancialChart() {
               variant={period === "12m" ? "default" : "outline"}
               size="sm"
               onClick={() => setPeriod("12m")}
+              className="text-xs sm:text-sm"
             >
               12 mois
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-2">
           Suivi mensuel du revenu récurrent et du nombre de clients actifs
         </p>
       </CardHeader>

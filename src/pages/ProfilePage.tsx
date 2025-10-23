@@ -109,17 +109,19 @@ export function ProfilePage() {
   return (
     <div>
       <Header title="Mon Profil" />
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Carte principale - Informations utilisateur */}
         <Card>
           <CardHeader>
-            <CardTitle>Informations personnelles</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              Informations personnelles
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-start gap-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {/* Avatar */}
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-indigo-600 text-white flex-shrink-0">
-                <span className="text-3xl font-bold">
+              <div className="flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-indigo-600 text-white flex-shrink-0">
+                <span className="text-2xl sm:text-3xl font-bold">
                   {user.firstName?.[0]?.toUpperCase()}
                   {user.lastName?.[0]?.toUpperCase()}
                 </span>

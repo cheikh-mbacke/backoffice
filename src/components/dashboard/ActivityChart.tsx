@@ -67,16 +67,17 @@ export function ActivityChart() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Activité Quotidienne
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Activity className="h-5 w-5 flex-shrink-0" />
+            <span>Activité Quotidienne</span>
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button
               variant={period === "7d" ? "default" : "outline"}
               size="sm"
               onClick={() => setPeriod("7d")}
+              className="text-xs sm:text-sm"
             >
               7 jours
             </Button>
@@ -84,6 +85,7 @@ export function ActivityChart() {
               variant={period === "30d" ? "default" : "outline"}
               size="sm"
               onClick={() => setPeriod("30d")}
+              className="text-xs sm:text-sm"
             >
               30 jours
             </Button>
@@ -91,12 +93,13 @@ export function ActivityChart() {
               variant={period === "90d" ? "default" : "outline"}
               size="sm"
               onClick={() => setPeriod("90d")}
+              className="text-xs sm:text-sm"
             >
               90 jours
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-2">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-2">
           Suivi de l'activité des utilisateurs et de la création de consignes
         </p>
       </CardHeader>

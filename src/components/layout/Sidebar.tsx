@@ -8,6 +8,7 @@ import {
   LogOut,
   Shield,
   BookOpen,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,12 @@ const navigation: NavItem[] = [
   { name: "Documentation", href: "/documentation", icon: BookOpen },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
 
@@ -44,78 +50,104 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-900 text-white">
-      {/* Logo */}
-      <div className="flex h-16 items-center justify-center border-b border-gray-800 px-6">
-        <h1 className="text-xl font-bold">ConsignesPro Back Office</h1>
-      </div>
+    <>
+      {/* Overlay pour mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.href;
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col bg-gray-900 text-white transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {/* Logo avec bouton fermeture mobile */}
+        <div className="flex h-16 items-center justify-between border-b border-gray-800 px-4">
+          <h1 className="text-lg font-bold lg:text-xl">ConsignesPro BO</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="lg:hidden text-gray-300 hover:text-white"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.href;
 
-      {/* User Info & Logout */}
-      <div className="border-t border-gray-800 p-4 space-y-2">
-        {/* Lien vers le profil */}
-        <Link
-          to="/profile"
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
-            location.pathname === "/profile"
-              ? "bg-gray-800 text-white"
-              : "text-gray-300 hover:bg-gray-800 hover:text-white"
-          )}
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600">
-            <span className="text-sm font-semibold">
-              {user?.firstName?.[0]?.toUpperCase()}
-              {user?.lastName?.[0]?.toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium">
-              {user?.firstName
-                ? user.firstName.charAt(0).toUpperCase() +
-                  user.firstName.slice(1).toLowerCase()
-                : ""}{" "}
-              {user?.lastName}
-            </p>
-            <div className="flex items-center gap-1.5">
-              <Shield className="h-3 w-3" />
-              <span className="text-xs">{getRoleLabel(user?.role)}</span>
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                )}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className="truncate">{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User Info & Logout */}
+        <div className="border-t border-gray-800 p-4 space-y-2">
+          {/* Lien vers le profil */}
+          <Link
+            to="/profile"
+            onClick={onClose}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+              location.pathname === "/profile"
+                ? "bg-gray-800 text-white"
+                : "text-gray-300 hover:bg-gray-800 hover:text-white"
+            )}
+          >
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600">
+              <span className="text-sm font-semibold">
+                {user?.firstName?.[0]?.toUpperCase()}
+                {user?.lastName?.[0]?.toUpperCase()}
+              </span>
             </div>
-          </div>
-        </Link>
+            <div className="flex-1 overflow-hidden min-w-0">
+              <p className="truncate text-sm font-medium">
+                {user?.firstName
+                  ? user.firstName.charAt(0).toUpperCase() +
+                    user.firstName.slice(1).toLowerCase()
+                  : ""}{" "}
+                {user?.lastName}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Shield className="h-3 w-3 flex-shrink-0" />
+                <span className="text-xs truncate">{getRoleLabel(user?.role)}</span>
+              </div>
+            </div>
+          </Link>
 
-        <Button
-          onClick={() => logout()}
-          variant="ghost"
-          className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Déconnexion
-        </Button>
-      </div>
-    </div>
+          <Button
+            onClick={() => logout()}
+            variant="ghost"
+            className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Déconnexion
+          </Button>
+        </div>
+      </aside>
+    </>
   );
 }

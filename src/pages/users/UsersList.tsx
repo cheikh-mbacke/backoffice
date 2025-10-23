@@ -68,24 +68,26 @@ export function UsersListPage() {
   return (
     <div>
       <Header title="Admins d'Hôtels" />
-      <div className="p-6">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="p-4 sm:p-6">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-xl sm:text-2xl font-bold">
               Contacts Principaux des Hôtels
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Gérez les administrateurs d'hôtels (vos contacts principaux)
             </p>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button onClick={() => setIsCreateOpen(true)} size="sm" className="sm:size-default">
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter un Admin d'Hôtel
+            <span className="hidden sm:inline">Ajouter un Admin d'Hôtel</span>
+            <span className="sm:hidden">Ajouter</span>
           </Button>
         </div>
 
-        <div className="rounded-lg border bg-card">
-          <Table>
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nom</TableHead>
@@ -153,12 +155,13 @@ export function UsersListPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
 
         {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Page {pagination.page} sur {pagination.totalPages}
             </p>
             <div className="flex gap-2">

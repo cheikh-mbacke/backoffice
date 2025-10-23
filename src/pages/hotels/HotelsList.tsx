@@ -100,22 +100,24 @@ export function HotelsListPage() {
   return (
     <div>
       <Header title="Hôtels" />
-      <div className="p-6">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="p-4 sm:p-6">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Clients (Hôtels)</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold">Clients (Hôtels)</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Gérez vos clients hôtels et leurs abonnements
             </p>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button onClick={() => setIsCreateOpen(true)} size="sm" className="sm:size-default">
             <Plus className="mr-2 h-4 w-4" />
-            Ajouter un Client
+            <span className="hidden sm:inline">Ajouter un Client</span>
+            <span className="sm:hidden">Ajouter</span>
           </Button>
         </div>
 
-        <div className="rounded-lg border bg-card">
-          <Table>
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nom de l'Hôtel</TableHead>
@@ -259,12 +261,13 @@ export function HotelsListPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
 
         {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Page {pagination.page} sur {pagination.totalPages}
             </p>
             <div className="flex gap-2">

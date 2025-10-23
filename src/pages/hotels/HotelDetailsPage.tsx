@@ -119,25 +119,27 @@ export function HotelDetailsPage() {
   return (
     <div>
       <Header title="Détails du Client" />
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header avec retour */}
-        <div className="mb-6 flex items-center gap-4">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
           <Button
             variant="outline"
             onClick={() => navigate("/hotels")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 self-start"
+            size="sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour à la liste
+            <span className="hidden sm:inline">Retour à la liste</span>
+            <span className="sm:hidden">Retour</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{hotel.name}</h1>
-            <p className="text-muted-foreground">{hotel.address}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">{hotel.name}</h1>
+            <p className="text-sm text-muted-foreground">{hotel.address}</p>
           </div>
         </div>
 
         {/* Informations générales */}
-        <div className="mb-6 grid gap-4 md:grid-cols-4">
+        <div className="mb-4 sm:mb-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Statut</CardTitle>
@@ -206,7 +208,7 @@ export function HotelDetailsPage() {
 
           {/* Onglet Vue d'ensemble */}
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Informations de Contact</CardTitle>
@@ -286,7 +288,7 @@ export function HotelDetailsPage() {
                 <CardTitle>Statistiques d'Usage</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                   <div className="text-center">
                     <div className="text-2xl font-bold">
                       {hotel._count?.users || 0}
@@ -361,7 +363,7 @@ export function HotelDetailsPage() {
                 <CardTitle>Configuration du Client</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium">
                       Limite d'utilisateurs

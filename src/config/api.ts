@@ -1,7 +1,18 @@
 // src/config/api.ts
 import axios, { AxiosError } from "axios";
 
-const API_BASE_URL = "http://localhost:3000/api/v1";
+// Configuration dynamique de l'URL de l'API selon l'environnement
+const getApiBaseUrl = () => {
+  // En développement, utiliser l'URL complète du backend avec /api/v1
+  if (import.meta.env.DEV) {
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    return `${baseUrl}/api/v1`;
+  }
+  // En production, utiliser l'URL complète de l'API
+  return "https://api.consignespro.com/api/v1";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
