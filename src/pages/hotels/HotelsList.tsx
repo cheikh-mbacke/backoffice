@@ -6,7 +6,7 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Building2,
+  // Building2,
   Users,
   HardDrive,
   Eye,
@@ -16,7 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useHotels } from "@/hooks/useHotels";
 import { Badge } from "@/components/ui/badge";
-import { SubscriptionStatus, SubscriptionPlan, Hotel } from "@/types";
+import { SubscriptionStatus, Hotel } from "@/types";
 import {
   Table,
   TableBody,

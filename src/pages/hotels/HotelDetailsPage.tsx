@@ -1,5 +1,5 @@
 // src/pages/hotels/HotelDetailsPage.tsx
-import { useState } from "react";
+// import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Hotel, SubscriptionStatus, SubscriptionPlan } from "@/types";
+import { SubscriptionStatus } from "@/types";
 import { useHotel } from "@/hooks/useHotels";
 
 // Couleurs pour les statuts et plans

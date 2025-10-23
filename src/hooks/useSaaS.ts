@@ -1,7 +1,7 @@
 // src/hooks/useSaaS.ts
 import { useQuery } from "@tanstack/react-query";
 import { saasService } from "../services/saas.service";
-import { SaaSStats, HotelActivity } from "../types";
+// import { SaaSStats, HotelActivity } from "../types";
 
 export const useSaaSStats = () => {
   return useQuery({

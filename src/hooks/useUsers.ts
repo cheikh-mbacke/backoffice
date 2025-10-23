@@ -36,7 +36,7 @@ export const useUsers = (page = 1, limit = 10) => {
       queryClient.setQueryData(["user", updatedUser.id], updatedUser);
       
       // Mettre à jour l'user dans toutes les listes paginées
-      queryClient.setQueriesData<{ data: User[]; pagination: any }>(
+      queryClient.setQueriesData<{ data: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
         { queryKey: ["users"] },
         (oldData) => {
           if (!oldData) return oldData;
@@ -65,7 +65,7 @@ export const useUsers = (page = 1, limit = 10) => {
     mutationFn: (id: string) => usersService.delete(id),
     onSuccess: (_, deletedId) => {
       // Retirer l'user de toutes les listes paginées
-      queryClient.setQueriesData<{ data: User[]; pagination: any }>(
+      queryClient.setQueriesData<{ data: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
         { queryKey: ["users"] },
         (oldData) => {
           if (!oldData) return oldData;

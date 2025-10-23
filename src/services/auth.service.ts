@@ -12,41 +12,38 @@ export const authService = {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    try {
-      const response = await api.post<AuthResponse>("/auth/login", credentials);
+    const response = await api.post<AuthResponse>("/auth/login", credentials);
 
-      // Extraire le token du header (vérifier les deux casse)
-      const authHeader =
-        response.headers["authorization"] || response.headers["Authorization"];
-      const token = authHeader?.substring(7) || "";
+    // Extraire le token du header (vérifier les deux casse)
+    const authHeader =
+      response.headers["authorization"] || response.headers["Authorization"];
+    const token = authHeader?.substring(7) || "";
 
-      // Stocker les tokens
-      if (token) {
-        localStorage.setItem("accessToken", token);
-      } else {
-      }
-
-      return {
-        user: {
-          id: response.data.id,
-          firstName: response.data.firstName,
-          lastName: response.data.lastName,
-          email: response.data.email,
-          role: response.data.role,
-          hotelId: response.data.hotelId,
-          createdAt: new Date().toISOString(), // Valeur par défaut
-          updatedAt: new Date().toISOString(), // Valeur par défaut
-        },
-        token,
-      };
-    } catch (error) {
-      throw error;
+    // Stocker les tokens
+    if (token) {
+      localStorage.setItem("accessToken", token);
     }
+
+    return {
+      user: {
+        id: response.data.id,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        email: response.data.email,
+        role: response.data.role,
+        hotelId: response.data.hotelId,
+        createdAt: new Date().toISOString(), // Valeur par défaut
+        updatedAt: new Date().toISOString(), // Valeur par défaut
+      },
+      token,
+    };
   },
 
   async logout(): Promise<void> {
     try {
       await api.post("/auth/logout");
+    } catch {
+      // Ignorer les erreurs de logout côté serveur
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");

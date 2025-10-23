@@ -34,7 +34,7 @@ export const useProfiles = (page = 1, limit = 10) => {
       queryClient.setQueryData(["profile", updatedProfile.id], updatedProfile);
       
       // Mettre à jour le profile dans toutes les listes paginées
-      queryClient.setQueriesData<{ data: Profile[]; pagination: any }>(
+      queryClient.setQueriesData<{ data: Profile[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
         { queryKey: ["profiles"] },
         (oldData) => {
           if (!oldData) return oldData;
@@ -60,7 +60,7 @@ export const useProfiles = (page = 1, limit = 10) => {
     mutationFn: (id: string) => profilesService.delete(id),
     onSuccess: (_, deletedId) => {
       // Retirer le profile de toutes les listes paginées
-      queryClient.setQueriesData<{ data: Profile[]; pagination: any }>(
+      queryClient.setQueriesData<{ data: Profile[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
         { queryKey: ["profiles"] },
         (oldData) => {
           if (!oldData) return oldData;

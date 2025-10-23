@@ -38,7 +38,7 @@ export function PlanDistributionChart({
 }: PlanDistributionChartProps) {
   // Transformer les données pour Recharts
   const chartData = Object.entries(planCounts)
-    .filter(([_, value]) => value > 0) // Ne montrer que les plans avec des clients
+    .filter(([, value]) => value > 0) // Ne montrer que les plans avec des clients
     .map(([key, value]) => ({
       name: PLAN_LABELS[key as keyof typeof PLAN_LABELS],
       value,
