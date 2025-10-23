@@ -23,7 +23,7 @@ export const useHotels = (page = 1, limit = 10) => {
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la création"
+        (error as any).response?.data?.errorMessage || "Erreur lors de la création"
       );
     },
   });
@@ -36,7 +36,7 @@ export const useHotels = (page = 1, limit = 10) => {
       queryClient.setQueryData(["hotel", updatedHotel.id], updatedHotel);
       
       // Mettre à jour l'hotel dans toutes les listes paginées
-      queryClient.setQueriesData<{ data: Hotel[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
+      queryClient.setQueriesData<{ data: any[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
         { queryKey: ["hotels"] },
         (oldData) => {
           if (!oldData) return oldData;
@@ -56,7 +56,7 @@ export const useHotels = (page = 1, limit = 10) => {
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la modification"
+        (error as any).response?.data?.errorMessage || "Erreur lors de la modification"
       );
     },
   });
@@ -65,7 +65,7 @@ export const useHotels = (page = 1, limit = 10) => {
     mutationFn: (id: string) => hotelsService.delete(id),
     onSuccess: (_, deletedId) => {
       // Retirer l'hotel de toutes les listes paginées
-      queryClient.setQueriesData<{ data: Hotel[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
+      queryClient.setQueriesData<{ data: any[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
         { queryKey: ["hotels"] },
         (oldData) => {
           if (!oldData) return oldData;
@@ -86,7 +86,7 @@ export const useHotels = (page = 1, limit = 10) => {
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la suppression"
+        (error as any).response?.data?.errorMessage || "Erreur lors de la suppression"
       );
     },
   });

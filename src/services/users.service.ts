@@ -24,8 +24,13 @@ export const usersService = {
       params: { page, limit },
     });
     return {
+      status: "success" as const,
       data: response.data.users,
-      pagination: response.data.pagination,
+      pagination: {
+        ...response.data.pagination,
+        totalPages: response.data.pagination.pages,
+      },
+      timestamp: response.data.timestamp,
     };
   },
 

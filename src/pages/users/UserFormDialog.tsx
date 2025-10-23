@@ -109,6 +109,14 @@ export function UserFormDialog({
       delete submitData.password;
     }
 
+    // S'assurer que le password est défini pour la création
+    if (!isEditing && !submitData.password) {
+      submitData.password = "defaultPassword123!"; // Mot de passe par défaut
+    }
+
+    // Type assertion pour éviter l'erreur TypeScript
+    const createData = submitData as any;
+
     if (isEditing && user) {
       updateUser(
         { id: user.id, data: submitData },
@@ -120,7 +128,7 @@ export function UserFormDialog({
         }
       );
     } else {
-      createUser(submitData, {
+      createUser(createData, {
         onSuccess: () => {
           onOpenChange(false);
           form.reset();

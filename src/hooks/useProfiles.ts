@@ -21,7 +21,8 @@ export const useProfiles = (page = 1, limit = 10) => {
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la création"
+        (error as any).response?.data?.errorMessage ||
+          "Erreur lors de la création"
       );
     },
   });
@@ -32,26 +33,32 @@ export const useProfiles = (page = 1, limit = 10) => {
     onSuccess: (updatedProfile) => {
       // Mettre à jour le cache du profile individuel
       queryClient.setQueryData(["profile", updatedProfile.id], updatedProfile);
-      
+
       // Mettre à jour le profile dans toutes les listes paginées
-      queryClient.setQueriesData<{ data: Profile[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
-        { queryKey: ["profiles"] },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.map((profile) =>
-              profile.id === updatedProfile.id ? updatedProfile : profile
-            ),
-          };
-        }
-      );
-      
+      queryClient.setQueriesData<{
+        data: any[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["profiles"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((profile) =>
+            profile.id === updatedProfile.id ? updatedProfile : profile
+          ),
+        };
+      });
+
       toast.success("Profil modifié avec succès");
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la modification"
+        (error as any).response?.data?.errorMessage ||
+          "Erreur lors de la modification"
       );
     },
   });
@@ -60,25 +67,31 @@ export const useProfiles = (page = 1, limit = 10) => {
     mutationFn: (id: string) => profilesService.delete(id),
     onSuccess: (_, deletedId) => {
       // Retirer le profile de toutes les listes paginées
-      queryClient.setQueriesData<{ data: Profile[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
-        { queryKey: ["profiles"] },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.filter((profile) => profile.id !== deletedId),
-          };
-        }
-      );
-      
+      queryClient.setQueriesData<{
+        data: any[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["profiles"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.filter((profile) => profile.id !== deletedId),
+        };
+      });
+
       // Supprimer du cache individuel
       queryClient.removeQueries({ queryKey: ["profile", deletedId] });
-      
+
       toast.success("Profil supprimé avec succès");
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la suppression"
+        (error as any).response?.data?.errorMessage ||
+          "Erreur lors de la suppression"
       );
     },
   });

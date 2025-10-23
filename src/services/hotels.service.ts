@@ -24,8 +24,13 @@ export const hotelsService = {
       params: { page, limit },
     });
     return {
+      status: "success" as const,
       data: response.data.hotels,
-      pagination: response.data.pagination,
+      pagination: {
+        ...response.data.pagination,
+        totalPages: response.data.pagination.pages,
+      },
+      timestamp: response.data.timestamp,
     };
   },
 

@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
+import { User } from "@/types";
 import {
   Table,
   TableBody,

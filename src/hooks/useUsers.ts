@@ -23,7 +23,8 @@ export const useUsers = (page = 1, limit = 10) => {
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la création"
+        (error as any).response?.data?.errorMessage ||
+          "Erreur lors de la création"
       );
     },
   });
@@ -34,29 +35,35 @@ export const useUsers = (page = 1, limit = 10) => {
     onSuccess: (updatedUser) => {
       // Mettre à jour le cache de l'user individuel
       queryClient.setQueryData(["user", updatedUser.id], updatedUser);
-      
+
       // Mettre à jour l'user dans toutes les listes paginées
-      queryClient.setQueriesData<{ data: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
-        { queryKey: ["users"] },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.map((user) =>
-              user.id === updatedUser.id ? updatedUser : user
-            ),
-          };
-        }
-      );
-      
+      queryClient.setQueriesData<{
+        data: any[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["users"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((user) =>
+            user.id === updatedUser.id ? updatedUser : user
+          ),
+        };
+      });
+
       // Invalider les stats SaaS car le nombre d'users peut avoir changé
       queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
-      
+
       toast.success("Utilisateur modifié avec succès");
     },
     onError: (error: unknown) => {
       toast.error(
-        error.response?.data?.errorMessage || "Erreur lors de la modification"
+        (error as any).response?.data?.errorMessage ||
+          "Erreur lors de la modification"
       );
     },
   });
@@ -65,26 +72,31 @@ export const useUsers = (page = 1, limit = 10) => {
     mutationFn: (id: string) => usersService.delete(id),
     onSuccess: (_, deletedId) => {
       // Retirer l'user de toutes les listes paginées
-      queryClient.setQueriesData<{ data: User[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>(
-        { queryKey: ["users"] },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: oldData.data.filter((user) => user.id !== deletedId),
-          };
-        }
-      );
-      
+      queryClient.setQueriesData<{
+        data: any[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["users"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.filter((user) => user.id !== deletedId),
+        };
+      });
+
       // Supprimer du cache individuel
       queryClient.removeQueries({ queryKey: ["user", deletedId] });
-      
+
       // Invalider les stats SaaS
       queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
-      
+
       toast.success("Utilisateur supprimé avec succès");
     },
-    onError: (error: unknown) => {
+    onError: (error: any) => {
       toast.error(
         error.response?.data?.errorMessage || "Erreur lors de la suppression"
       );

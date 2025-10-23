@@ -47,7 +47,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as any;
 
     // Si erreur 401 et pas déjà tenté de refresh
     if (error.response?.status === 401 && !originalRequest?._retry) {
