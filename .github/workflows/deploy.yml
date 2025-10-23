@@ -67,9 +67,9 @@ jobs:
         needs: build
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
-        environment:
-            name: production
-            url: https://backoffice.consignespro.com
+    environment:
+      name: production
+      url: https://back-office.consignespro.com
 
         steps:
             - name: Checkout code
@@ -201,9 +201,9 @@ jobs:
               if: always()
               run: |
                   if [ "${{ job.status }}" == "success" ]; then
-                    echo "Déploiement backoffice réussi"
-                    echo "Application accessible: https://backoffice.consignespro.com"
-                    echo "API accessible: https://api.consignespro.com"
+            echo "Déploiement backoffice réussi"
+            echo "Application accessible: https://back-office.consignespro.com"
+            echo "API accessible: https://api.consignespro.com"
                   else
                     echo "Déploiement backoffice échoué"
                     echo "Vérification manuelle requise"

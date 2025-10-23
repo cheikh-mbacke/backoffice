@@ -2,13 +2,13 @@
 
 ## 📋 Vue d'ensemble
 
-Ce document explique comment déployer le backoffice React sur `backoffice.consignespro.com` en utilisant Docker et GitHub Actions.
+Ce document explique comment déployer le backoffice React sur `back-office.consignespro.com` en utilisant Docker et GitHub Actions.
 
 ## 🏗️ Architecture de déploiement
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                backoffice.consignespro.com                 │
+│              back-office.consignespro.com                  │
 ├─────────────────────────────────────────────────────────────┤
 │  Nginx (Port 443)                                          │
 │  ├── /api/* → Backend (Port 3002)                         │
@@ -42,7 +42,7 @@ NODE_ENV=production
 
 Le déploiement met à jour automatiquement la configuration Nginx existante pour ajouter :
 
-- **Backoffice** : `backoffice.consignespro.com/` → `localhost:8082`
+- **Backoffice** : `back-office.consignespro.com/` → `localhost:8082`
 - **API** : `api.consignespro.com/` → `localhost:3002`
 
 ## 🚀 Déploiement automatique
@@ -108,7 +108,7 @@ npm run preview
 
 ### URLs de test
 
-- **Backoffice** : https://backoffice.consignespro.com
+- **Backoffice** : https://back-office.consignespro.com
 - **API Health** : https://api.consignespro.com/health
 - **API Auth** : https://api.consignespro.com/api/v1/auth/login
 
@@ -122,7 +122,7 @@ docker ps
 docker logs hotel-shift-backoffice-prod
 
 # Tester la connectivité
-curl -I https://backoffice.consignespro.com
+curl -I https://back-office.consignespro.com
 curl -I https://api.consignespro.com/health
 ```
 
@@ -152,8 +152,8 @@ curl -I https://api.consignespro.com/health
 
 ```bash
 # Logs Nginx
-tail -f /var/log/nginx/backoffice.consignespro.com.access.log
-tail -f /var/log/nginx/backoffice.consignespro.com.error.log
+tail -f /var/log/nginx/back-office.consignespro.com.access.log
+tail -f /var/log/nginx/back-office.consignespro.com.error.log
 
 # Logs Docker
 docker logs hotel-shift-backoffice-prod -f
