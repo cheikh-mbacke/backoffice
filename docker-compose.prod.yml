@@ -1,0 +1,23 @@
+services:
+  # Backoffice React avec Nginx
+  backoffice:
+    image: ghcr.io/cheikh-mbacke/backoffice:latest
+    container_name: hotel-shift-backoffice-prod
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8082:80"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - hotel-network
+    healthcheck:
+      test:
+        ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  hotel-network:
+    driver: bridge
