@@ -105,14 +105,31 @@ export function ProfileSelectionDialog({
       setCreating(true);
 
       // Récupérer l'utilisateur actuel pour obtenir son ID et hotelId
-      const currentUser = queryClient.getQueryData<{
+      let currentUser = queryClient.getQueryData<{
         id: string;
         hotelId: string | null;
         role: string;
-      }>(["currentUser"]);
+      }>(queryKeys.auth.currentUser);
+
+      // Si l'utilisateur n'est pas dans le cache, essayer de le récupérer depuis l'authService
+      if (!currentUser) {
+        try {
+          const userData = await authService.getCurrentUser();
+          currentUser = {
+            id: userData.id,
+            hotelId: userData.hotelId,
+            role: userData.role,
+          };
+        } catch (error) {
+          toast.error(
+            "Impossible de récupérer les informations utilisateur - Veuillez vous reconnecter"
+          );
+          return;
+        }
+      }
 
       if (!currentUser) {
-        toast.error("Utilisateur non trouvé");
+        toast.error("Utilisateur non trouvé - Veuillez vous reconnecter");
         return;
       }
 
@@ -345,7 +362,8 @@ export function ProfileSelectionDialog({
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
-                                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                const nextElement = e.currentTarget
+                                  .nextElementSibling as HTMLElement;
                                 if (nextElement) {
                                   nextElement.style.display = "flex";
                                 }
