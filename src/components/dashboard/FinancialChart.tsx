@@ -25,7 +25,7 @@ export function FinancialChart() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Évolution MRR & Clients
+            Évolution MRR & Hôtels
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[300px]">
@@ -41,7 +41,7 @@ export function FinancialChart() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Évolution MRR & Clients
+            Évolution MRR & Hôtels
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[300px]">
@@ -57,7 +57,7 @@ export function FinancialChart() {
   const chartData = data?.labels.map((label, index) => ({
     month: label,
     mrr: data.datasets[0]?.data[index] || 0,
-    clients: data.datasets[1]?.data[index] || 0,
+    hotels: data.datasets[1]?.data[index] || 0,
   })) || [];
 
   return (
@@ -66,7 +66,7 @@ export function FinancialChart() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <DollarSign className="h-5 w-5 flex-shrink-0" />
-            <span>Évolution MRR & Clients</span>
+            <span>Évolution MRR & Hôtels</span>
           </CardTitle>
           <div className="flex gap-2">
             <Button
@@ -88,7 +88,7 @@ export function FinancialChart() {
           </div>
         </div>
         <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-          Suivi mensuel du revenu récurrent et du nombre de clients actifs
+          Suivi mensuel du revenu récurrent et du nombre d'hôtels actifs
         </p>
       </CardHeader>
       <CardContent>
@@ -117,7 +117,7 @@ export function FinancialChart() {
               orientation="right"
               tick={{ fontSize: 12 }}
               label={{
-                value: "Clients",
+                value: "Hôtels",
                 angle: 90,
                 position: "insideRight",
                 style: { fontSize: 12 },
@@ -144,10 +144,10 @@ export function FinancialChart() {
             <Line
               yAxisId="right"
               type="monotone"
-              dataKey="clients"
+              dataKey="hotels"
               stroke="#3b82f6"
               strokeWidth={2}
-              name="Clients Actifs"
+              name="Hôtels Actifs"
               dot={{ r: 4 }}
               activeDot={{ r: 6 }}
             />

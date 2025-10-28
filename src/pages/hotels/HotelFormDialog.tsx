@@ -40,11 +40,9 @@ const hotelSchema = z.object({
     .max(255, "L'adresse ne peut pas dépasser 255 caractères")
     .optional(),
 
-  // NOUVEAUX CHAMPS SaaS
+  // CHAMPS SaaS
   status: z.nativeEnum(SubscriptionStatus).optional(),
   subscriptionPlan: z.nativeEnum(SubscriptionPlan),
-  maxUsers: z.number().min(1, "Au moins 1 utilisateur"),
-  maxStorageMB: z.number().min(100, "Au moins 100 MB"),
 
   contactName: z.string().optional(),
   contactEmail: z.string().email("Email invalide").optional().or(z.literal("")),
@@ -73,8 +71,6 @@ export function HotelFormDialog({
       name: "",
       address: "",
       subscriptionPlan: SubscriptionPlan.STARTER,
-      maxUsers: 5,
-      maxStorageMB: 1000,
       contactName: "",
       contactEmail: "",
       contactPhone: "",
@@ -84,12 +80,10 @@ export function HotelFormDialog({
   useEffect(() => {
     if (hotel) {
       form.reset({
-        name: hotel.name,
+        name: hotel.name || "",
         address: hotel.address || "",
         status: hotel.status,
         subscriptionPlan: hotel.subscriptionPlan,
-        maxUsers: hotel.maxUsers,
-        maxStorageMB: hotel.maxStorageMB,
         contactName: hotel.contactName || "",
         contactEmail: hotel.contactEmail || "",
         contactPhone: hotel.contactPhone || "",
@@ -99,8 +93,6 @@ export function HotelFormDialog({
         name: "",
         address: "",
         subscriptionPlan: SubscriptionPlan.STARTER,
-        maxUsers: 5,
-        maxStorageMB: 1000,
         contactName: "",
         contactEmail: "",
         contactPhone: "",
@@ -134,12 +126,12 @@ export function HotelFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Modifier le Client" : "Ajouter un Client"}
+            {isEditing ? "Modifier l'Hôtel" : "Ajouter un Hôtel"}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Modifiez les informations du client hôtel"
-              : "Ajoutez un nouveau client hôtel à la plateforme"}
+              ? "Modifiez les informations de l'hôtel"
+              : "Ajoutez un nouvel hôtel à la plateforme"}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,7 +160,8 @@ export function HotelFormDialog({
                     <FormLabel>Plan d'abonnement *</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
+                      key={`plan-${hotel?.id || "new"}`}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -178,6 +171,9 @@ export function HotelFormDialog({
                       <SelectContent>
                         <SelectItem value={SubscriptionPlan.FREE}>
                           FREE
+                        </SelectItem>
+                        <SelectItem value={SubscriptionPlan.TRIAL}>
+                          TRIAL
                         </SelectItem>
                         <SelectItem value={SubscriptionPlan.STARTER}>
                           STARTER
@@ -203,10 +199,11 @@ export function HotelFormDialog({
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Statut du client *</FormLabel>
+                    <FormLabel>Statut de l'hôtel *</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
+                      key={`status-${hotel?.id || "new"}`}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -251,50 +248,6 @@ export function HotelFormDialog({
                 </FormItem>
               )}
             />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="maxUsers"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Limite d'utilisateurs *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="5"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="maxStorageMB"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Limite de stockage (MB) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="1000"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold mb-3">Contact Principal</h3>

@@ -6,19 +6,32 @@ const getApiBaseUrl = () => {
   // En développement, utiliser l'URL complète du backend avec /api/v1
   if (import.meta.env.DEV) {
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    return `${baseUrl}/api/v1`;
+    const fullUrl = `${baseUrl}/api/v1`;
+    console.log("🔧 API Configuration:", {
+      env: "development",
+      baseUrl,
+      fullUrl,
+      viteApiUrl: import.meta.env.VITE_API_URL,
+    });
+    return fullUrl;
   }
   // En production, utiliser l'URL complète de l'API
-  return "https://api.consignespro.com/api/v1";
+  const prodUrl = "https://api.consignespro.com/api/v1";
+  console.log("🔧 API Configuration:", {
+    env: "production",
+    fullUrl: prodUrl,
+  });
+  return prodUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // Ne pas définir Content-Type par défaut pour permettre multipart/form-data
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 // Intercepteur de requête pour ajouter le token
@@ -27,18 +40,13 @@ api.interceptors.request.use(
     const token = localStorage.getItem("accessToken");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("🚀 [API] Requête envoyée:", {
-        url: config.url,
-        method: config.method,
-        hasToken: !!token,
-        tokenPreview: token.substring(0, 20) + "...",
-      });
-    } else {
-      console.log("⚠️ [API] Requête sans token:", {
-        url: config.url,
-        method: config.method,
-      });
     }
+
+    // Ajouter Content-Type pour les requêtes JSON (pas pour FormData)
+    if (!config.headers["Content-Type"] && !(config.data instanceof FormData)) {
+      config.headers["Content-Type"] = "application/json";
+    }
+
     return config;
   },
   (error) => {
@@ -68,6 +76,15 @@ api.interceptors.response.use(
       originalRequest &&
       !originalRequest._retry
     ) {
+      // Vérifier si c'est une erreur de validation (mot de passe incorrect, etc.)
+      // Dans ce cas, ne pas essayer de rafraîchir le token
+      if ((error.response?.data as any)?.errorName === "INVALID_CREDENTIALS") {
+        console.log(
+          "🔐 Interceptor: INVALID_CREDENTIALS detected, not refreshing token"
+        );
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       try {

@@ -1,4 +1,5 @@
 // src/components/layout/Sidebar.tsx
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -7,11 +8,22 @@ import {
   Users,
   LogOut,
   Shield,
-  BookOpen,
   X,
+  ChevronDown,
+  User as UserIcon,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateCurrentUserData } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
+import { ProfileSelectionDialog } from "@/components/auth/ProfileSelectionDialog";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { profilePhotosService } from "@/services/profilePhotos.service";
 
 interface NavItem {
   name: string;
@@ -21,9 +33,10 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Clients (Hôtels)", href: "/hotels", icon: Building2 },
+  { name: "Hôtels", href: "/hotels", icon: Building2 },
   { name: "Admins Hôtels", href: "/users", icon: Users },
-  { name: "Documentation", href: "/documentation", icon: BookOpen },
+  { name: "Mes Profils", href: "/profiles", icon: UserIcon },
+  { name: "Mon Compte", href: "/account", icon: Shield },
 ];
 
 interface SidebarProps {
@@ -34,6 +47,8 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
+  const [showProfileSelection, setShowProfileSelection] = useState(false);
 
   // Fonction pour obtenir le label du rôle (simplifié)
   const getRoleLabel = (role?: string) => {
@@ -49,8 +64,30 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
+  const handleProfileSelected = async () => {
+    setShowProfileSelection(false);
+    // Invalider le cache pour forcer le rechargement des données utilisateur
+    await invalidateCurrentUserData(queryClient);
+  };
+
+  const handleProfileDialogOpenChange = (open: boolean) => {
+    setShowProfileSelection(open);
+  };
+
+  const displayName =
+    user?.currentProfileName ||
+    (user ? `${user.firstName} ${user.lastName}` : "Utilisateur");
+  const displayRole = user?.currentProfileRole || user?.role;
+  const hasProfile = !!user?.currentProfileId;
+
   return (
     <>
+      <ProfileSelectionDialog
+        open={showProfileSelection}
+        onProfileSelected={handleProfileSelected}
+        onOpenChange={handleProfileDialogOpenChange}
+      />
+
       {/* Overlay pour mobile */}
       {isOpen && (
         <div
@@ -62,7 +99,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col bg-gray-900 text-white transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col bg-gray-900 dark:bg-gray-800 text-white transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -93,8 +130,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    ? "bg-gray-800 dark:bg-gray-700 text-white"
+                    : "text-gray-300 dark:text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 hover:text-white"
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
@@ -106,42 +143,72 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* User Info & Logout */}
         <div className="border-t border-gray-800 p-4 space-y-2">
-          {/* Lien vers le profil */}
-          <Link
-            to="/profile"
-            onClick={onClose}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
-              location.pathname === "/profile"
-                ? "bg-gray-800 text-white"
-                : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}
-          >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600">
-              <span className="text-sm font-semibold">
-                {user?.firstName?.[0]?.toUpperCase()}
-                {user?.lastName?.[0]?.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 overflow-hidden min-w-0">
-              <p className="truncate text-sm font-medium">
-                {user?.firstName
-                  ? user.firstName.charAt(0).toUpperCase() +
-                    user.firstName.slice(1).toLowerCase()
-                  : ""}{" "}
-                {user?.lastName}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Shield className="h-3 w-3 flex-shrink-0" />
-                <span className="text-xs truncate">{getRoleLabel(user?.role)}</span>
-              </div>
-            </div>
-          </Link>
+          {/* Affichage du profil actuel avec possibilité de changer */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setShowProfileSelection(true)}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                    "text-gray-300 dark:text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 hover:text-white"
+                  )}
+                >
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600 dark:bg-indigo-500 overflow-hidden">
+                    {hasProfile && user?.currentProfileAvatarUrl ? (
+                      (() => {
+                        const avatarUrl =
+                          profilePhotosService.getProfilePhotoUrl(
+                            user.currentProfileAvatarUrl
+                          );
+                        return (
+                          <img
+                            src={avatarUrl || ""}
+                            alt={`Photo de ${displayName}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback vers l'icône si l'image ne charge pas
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        );
+                      })()
+                    ) : hasProfile ? (
+                      <UserIcon className="h-5 w-5" />
+                    ) : (
+                      <span className="text-sm font-semibold">
+                        {user?.firstName?.[0]?.toUpperCase()}
+                        {user?.lastName?.[0]?.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 overflow-hidden min-w-0 text-left">
+                    <p className="truncate text-sm font-medium">
+                      {displayName}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <Shield className="h-3 w-3 flex-shrink-0" />
+                      <span className="text-xs truncate">
+                        {getRoleLabel(displayRole)}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>
+                  {hasProfile ? "Changer de profil" : "Sélectionner un profil"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
+          {/* Bouton de déconnexion */}
           <Button
             onClick={() => logout()}
             variant="ghost"
-            className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
+            className="w-full justify-start text-gray-300 dark:text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 hover:text-white"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Déconnexion

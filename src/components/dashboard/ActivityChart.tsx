@@ -54,15 +54,16 @@ export function ActivityChart() {
   }
 
   // Transformer les données pour Recharts
-  const chartData = data?.labels.map((label, index) => ({
-    date: new Date(label).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-    }),
-    nouveauxUtilisateurs: data.datasets[0]?.data[index] || 0,
-    consignes: data.datasets[1]?.data[index] || 0,
-    utilisateursActifs: data.datasets[2]?.data[index] || 0,
-  })) || [];
+  const chartData =
+    data?.labels.map((label, index) => ({
+      date: new Date(label).toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      nouveauxUtilisateurs: data.datasets[0]?.data[index] || 0,
+      consignes: data.datasets[1]?.data[index] || 0,
+      utilisateursActifs: data.datasets[2]?.data[index] || 0,
+    })) || [];
 
   return (
     <Card>
@@ -127,28 +128,28 @@ export function ActivityChart() {
               type="monotone"
               dataKey="consignes"
               stroke="#10b981"
-              strokeWidth={2}
+              strokeWidth={3}
               name="Consignes créées"
-              dot={{ r: 3 }}
-              activeDot={{ r: 5 }}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
             />
             <Line
               type="monotone"
               dataKey="utilisateursActifs"
               stroke="#3b82f6"
-              strokeWidth={2}
+              strokeWidth={3}
               name="Utilisateurs actifs"
-              dot={{ r: 3 }}
-              activeDot={{ r: 5 }}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
             />
             <Line
               type="monotone"
               dataKey="nouveauxUtilisateurs"
               stroke="#f59e0b"
-              strokeWidth={2}
+              strokeWidth={3}
               name="Nouveaux utilisateurs"
-              dot={{ r: 3 }}
-              activeDot={{ r: 5 }}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -156,4 +157,3 @@ export function ActivityChart() {
     </Card>
   );
 }
-

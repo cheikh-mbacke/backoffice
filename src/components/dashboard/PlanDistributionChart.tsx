@@ -13,6 +13,7 @@ import { Building2 } from "lucide-react";
 interface PlanDistributionChartProps {
   planCounts: {
     free: number;
+    trial: number;
     starter: number;
     professional: number;
     enterprise: number;
@@ -21,6 +22,7 @@ interface PlanDistributionChartProps {
 
 const COLORS = {
   free: "#94a3b8",
+  trial: "#10b981",
   starter: "#3b82f6",
   professional: "#8b5cf6",
   enterprise: "#f59e0b",
@@ -28,6 +30,7 @@ const COLORS = {
 
 const PLAN_LABELS = {
   free: "FREE",
+  trial: "TRIAL",
   starter: "STARTER",
   professional: "PROFESSIONAL",
   enterprise: "ENTERPRISE",
@@ -38,7 +41,7 @@ export function PlanDistributionChart({
 }: PlanDistributionChartProps) {
   // Transformer les données pour Recharts
   const chartData = Object.entries(planCounts)
-    .filter(([, value]) => value > 0) // Ne montrer que les plans avec des clients
+    .filter(([, value]) => value > 0) // Ne montrer que les plans avec des hôtels
     .map(([key, value]) => ({
       name: PLAN_LABELS[key as keyof typeof PLAN_LABELS],
       value,
@@ -74,7 +77,7 @@ export function PlanDistributionChart({
           Répartition par Plan
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-2">
-          Distribution des {total} clients par type d'abonnement
+          Distribution des {total} hôtels par type d'abonnement
         </p>
       </CardHeader>
       <CardContent>
@@ -97,7 +100,7 @@ export function PlanDistributionChart({
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`${value} client(s)`, "Nombre"]}
+              formatter={(value: number) => [`${value} hôtel(s)`, "Nombre"]}
             />
             <Legend />
           </PieChart>
@@ -108,16 +111,20 @@ export function PlanDistributionChart({
           {chartData.map((item) => (
             <div
               key={item.name}
-              className="flex items-center justify-between p-2 rounded bg-gray-50"
+              className="flex items-center justify-between p-2 rounded bg-gray-50 dark:bg-gray-800"
             >
               <div className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-sm font-medium">{item.name}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {item.name}
+                </span>
               </div>
-              <span className="text-sm font-semibold">{item.value}</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {item.value}
+              </span>
             </div>
           ))}
         </div>
@@ -125,4 +132,3 @@ export function PlanDistributionChart({
     </Card>
   );
 }
-

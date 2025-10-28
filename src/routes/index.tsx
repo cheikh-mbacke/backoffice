@@ -7,8 +7,8 @@ import { DashboardPage } from "@/pages/Dashboard";
 import { HotelsListPage } from "@/pages/hotels/HotelsList";
 import { HotelDetailsPage } from "@/pages/hotels/HotelDetailsPage";
 import { UsersListPage } from "@/pages/users/UsersList";
-import { ProfilePage } from "@/pages/ProfilePage";
-import { DocumentationPage } from "@/pages/Documentation";
+import AccountPage from "@/pages/Account";
+import ProfilesPage from "@/pages/Profiles";
 
 export const router = createBrowserRouter([
   {
@@ -40,12 +40,12 @@ export const router = createBrowserRouter([
         element: <UsersListPage />,
       },
       {
-        path: "profile",
-        element: <ProfilePage />,
+        path: "account",
+        element: <AccountPage />,
       },
       {
-        path: "documentation",
-        element: <DocumentationPage />,
+        path: "profiles",
+        element: <ProfilesPage />,
       },
     ],
   },

@@ -14,24 +14,24 @@ interface AlertItemProps {
 const typeConfig = {
   warning: {
     icon: AlertTriangle,
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-200",
-    iconColor: "text-orange-600",
-    textColor: "text-orange-900",
+    bgColor: "bg-orange-50 dark:bg-orange-900/20",
+    borderColor: "border-orange-200 dark:border-orange-800",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    textColor: "text-orange-900 dark:text-orange-100",
   },
   info: {
     icon: Info,
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-    iconColor: "text-blue-600",
-    textColor: "text-blue-900",
+    bgColor: "bg-blue-50 dark:bg-blue-900/20",
+    borderColor: "border-blue-200 dark:border-blue-800",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    textColor: "text-blue-900 dark:text-blue-100",
   },
   error: {
     icon: XCircle,
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
-    iconColor: "text-red-600",
-    textColor: "text-red-900",
+    bgColor: "bg-red-50 dark:bg-red-900/20",
+    borderColor: "border-red-200 dark:border-red-800",
+    iconColor: "text-red-600 dark:text-red-400",
+    textColor: "text-red-900 dark:text-red-100",
   },
 };
 

@@ -12,14 +12,21 @@ export interface User {
   id: string;
   email: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   role: UserRole;
   hotelId: string | null;
-  phone?: string; // NOUVEAU
-  position?: string; // NOUVEAU
+  phone?: string;
+  position?: string;
+  isDefault?: boolean; // Compte par défaut (ne peut pas être supprimé)
   createdAt: string;
   updatedAt: string;
   hotel?: Hotel; // Relation pour afficher le nom de l'hôtel
+
+  // SYSTÈME DE PROFILS NETFLIX-LIKE
+  currentProfileId?: string; // ID du profil actuellement sélectionné
+  currentProfileName?: string; // Nom du profil pour affichage rapide
+  currentProfileRole?: UserRole; // Rôle du profil actuel
+  currentProfileAvatarUrl?: string; // URL de la photo du profil actuel
 }
 
 // Types SaaS
@@ -32,6 +39,7 @@ export const SubscriptionStatus = {
 
 export const SubscriptionPlan = {
   FREE: "FREE",
+  TRIAL: "TRIAL",
   STARTER: "STARTER",
   PROFESSIONAL: "PROFESSIONAL",
   ENTERPRISE: "ENTERPRISE",
@@ -47,13 +55,11 @@ export interface Hotel {
   name: string;
   address?: string;
 
-  // NOUVEAUX CHAMPS SaaS
+  // CHAMPS SaaS complets
   status: SubscriptionStatus; // Statut du compte
   subscriptionPlan: SubscriptionPlan; // Plan tarifaire
   subscriptionStartDate: string; // Date de début d'abonnement
   subscriptionEndDate?: string; // Date de fin (si trial ou résiliation)
-  maxUsers: number; // Limite d'utilisateurs selon le plan
-  maxStorageMB: number; // Limite de stockage fichiers
 
   // Contact principal
   contactName?: string;
@@ -81,6 +87,7 @@ export interface Profile {
   role: UserRole;
   isActive: boolean;
   isDefault: boolean;
+  avatarUrl?: string; // URL de la photo de profil
   createdAt: string;
   updatedAt: string;
   user?: User;
@@ -93,12 +100,20 @@ export interface AuthResponse {
   timestamp: string;
   id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   email: string;
   role: UserRole;
   hotelId: string | null;
+  phone?: string;
+  position?: string;
+  isDefault: boolean;
   createdAt?: string;
   updatedAt?: string;
+  // Informations du profil actuel
+  currentProfileId?: string | null;
+  currentProfileName?: string | null;
+  currentProfileRole?: UserRole | null;
+  currentProfileAvatarUrl?: string | null;
 }
 
 export interface LoginCredentials {
@@ -137,10 +152,8 @@ export interface CreateHotelDto {
   name: string;
   address?: string;
 
-  // NOUVEAUX CHAMPS SaaS
+  // CHAMPS SaaS complets
   subscriptionPlan: SubscriptionPlan;
-  maxUsers: number;
-  maxStorageMB: number;
 
   contactName?: string;
   contactEmail?: string;
@@ -151,11 +164,9 @@ export interface UpdateHotelDto {
   name?: string;
   address?: string;
 
-  // NOUVEAUX CHAMPS SaaS
+  // CHAMPS SaaS complets
   status?: SubscriptionStatus;
   subscriptionPlan?: SubscriptionPlan;
-  maxUsers?: number;
-  maxStorageMB?: number;
 
   contactName?: string;
   contactEmail?: string;
@@ -166,7 +177,7 @@ export interface CreateUserDto {
   email: string;
   password: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   role: UserRole;
   hotelId?: string | null;
   phone?: string; // NOUVEAU
@@ -182,6 +193,7 @@ export interface UpdateUserDto {
   hotelId?: string | null;
   phone?: string; // NOUVEAU
   position?: string; // NOUVEAU
+  isDefault?: boolean; // NOUVEAU
 }
 
 export interface CreateProfileDto {
@@ -227,6 +239,7 @@ export interface SaaSStats {
 
   planCounts: {
     free: number;
+    trial: number; // Ajout du plan TRIAL manquant
     starter: number;
     professional: number;
     enterprise: number;
@@ -268,4 +281,18 @@ export interface SystemHealth {
     total: number;
     percentage: number;
   };
+}
+
+// Types pour les utilisateurs d'un hôtel
+export interface HotelUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName?: string;
+  role: UserRole;
+  phone?: string;
+  position?: string;
+  createdAt: string;
+  lastLogin?: string;
+  shiftLogsCount: number; // Nombre de consignes créées (30 derniers jours)
 }

@@ -28,24 +28,24 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 84% 8%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 84% 8%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 84% 8%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217.2 32.6% 20%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 217.2 32.6% 20%;
+    --muted-foreground: 215 20.2% 70%;
+    --accent: 217.2 32.6% 20%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 20%;
     --ring: 224.3 76.3% 48%;
   }
 }
@@ -56,5 +56,51 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Améliorations spécifiques au mode sombre */
+  .dark {
+    /* Améliorer la lisibilité des textes */
+    .text-muted-foreground {
+      @apply text-gray-400;
+    }
+
+    /* Améliorer les cartes */
+    .bg-card {
+      @apply bg-gray-900/50;
+    }
+
+    /* Améliorer les bordures */
+    .border {
+      @apply border-gray-700;
+    }
+
+    /* Améliorer les inputs */
+    .bg-background {
+      @apply bg-gray-900;
+    }
+
+    /* Améliorer les hover states */
+    .hover\:bg-muted\/50:hover {
+      @apply bg-gray-800/50;
+    }
+
+    /* Améliorer les gradients */
+    .bg-gradient-to-r {
+      &.from-blue-50 {
+        @apply from-blue-900/20;
+      }
+      &.to-indigo-50 {
+        @apply to-indigo-900/20;
+      }
+      &.from-slate-50 {
+        @apply from-slate-900/20;
+      }
+      &.to-gray-50 {
+        @apply to-gray-900/20;
+      }
+    }
   }
 }

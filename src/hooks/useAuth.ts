@@ -3,24 +3,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../services/auth.service";
 import { LoginCredentials } from "../types";
 import { useNavigate } from "react-router-dom";
+import {
+  queryKeys,
+  invalidateCurrentUserData,
+  invalidateProfilesData,
+} from "@/lib/queryKeys";
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ["currentUser"],
+    queryKey: queryKeys.auth.currentUser,
     queryFn: async () => {
-      console.log("🔍 [useAuth] Récupération des données utilisateur...");
       const user = await authService.getCurrentUser();
-      console.log("👤 [useAuth] Utilisateur récupéré:", {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        hotelId: user.hotelId,
-      });
       return user;
     },
     enabled: authService.isAuthenticated(),
@@ -32,12 +28,11 @@ export const useAuth = () => {
       authService.login(credentials),
     onSuccess: async (data) => {
       // Mettre à jour directement le cache avec les données du user
-      queryClient.setQueryData(["currentUser"], data.user);
-      // Invalider la query pour s'assurer que les données sont fraîches
-      await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      queryClient.setQueryData(queryKeys.auth.currentUser, data.user);
+      // Invalider tous les caches liés à l'utilisateur
+      await invalidateCurrentUserData(queryClient);
     },
-    onError: (error) => {
-      console.error("Erreur de connexion:", error);
+    onError: () => {
       // Ne pas nettoyer le localStorage ici, c'est déjà fait par l'intercepteur si nécessaire
     },
     retry: false,
@@ -49,6 +44,27 @@ export const useAuth = () => {
       queryClient.clear();
       navigate("/login");
     },
+  });
+
+  const selectProfileMutation = useMutation({
+    mutationFn: (profileId: string) => authService.selectProfile(profileId),
+    onSuccess: async (data) => {
+      // Mettre à jour le cache avec les nouvelles données utilisateur
+      queryClient.setQueryData(queryKeys.auth.currentUser, data.user);
+
+      // Invalider tous les caches liés à l'utilisateur ET aux profils
+      await Promise.all([
+        invalidateCurrentUserData(queryClient),
+        invalidateProfilesData(queryClient, data.user.id),
+      ]);
+    },
+  });
+
+  // Query pour récupérer les profils disponibles
+  const { data: availableProfiles, refetch: refetchProfiles } = useQuery({
+    queryKey: queryKeys.auth.availableProfiles,
+    queryFn: authService.getAvailableProfiles,
+    enabled: false, // Ne charge que quand demandé
   });
 
   // Vérifier l'authentification : token présent ET user chargé
@@ -65,5 +81,10 @@ export const useAuth = () => {
     isLoginLoading: loginMutation.isPending,
     loginError: loginMutation.error,
     resetLoginError: loginMutation.reset,
+    // Gestion des profils
+    selectProfile: selectProfileMutation.mutateAsync,
+    isSelectingProfile: selectProfileMutation.isPending,
+    availableProfiles,
+    refetchProfiles,
   };
 };

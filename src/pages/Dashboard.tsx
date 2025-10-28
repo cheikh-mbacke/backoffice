@@ -34,7 +34,7 @@ export function DashboardPage() {
 
   // États pour gérer l'ouverture/fermeture des sections
   const [openSections, setOpenSections] = useState({
-    clients: false,
+    hotels: false,
     users: false,
     revenue: false,
     performance: false,
@@ -68,33 +68,33 @@ export function DashboardPage() {
         <div className="p-6 space-y-4">
           {/* Avertissement si l'utilisateur n'est pas SUPER_ADMIN */}
           {user?.role !== UserRole.SUPER_ADMIN && (
-            <Card className="border-amber-200 bg-amber-50">
+            <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
-                  <AlertTriangle className="h-6 w-6 text-amber-600 mt-0.5" />
+                  <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-amber-900 mb-2">
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
                       Accès restreint - Rôle SUPER_ADMIN requis
                     </h3>
-                    <p className="text-sm text-amber-800 mb-3">
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
                       Le dashboard SaaS n'est accessible qu'aux utilisateurs
                       avec le rôle <strong>SUPER_ADMIN</strong>.
                     </p>
-                    <div className="text-sm text-amber-700 space-y-1">
+                    <div className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
                       <p>
                         <strong>Votre rôle actuel :</strong>{" "}
-                        <span className="font-mono bg-amber-100 px-2 py-0.5 rounded">
+                        <span className="font-mono bg-amber-100 dark:bg-amber-800/50 px-2 py-0.5 rounded text-amber-900 dark:text-amber-100">
                           {user?.role || "Non défini"}
                         </span>
                       </p>
                       <p>
                         <strong>Votre email :</strong>{" "}
-                        <span className="font-mono bg-amber-100 px-2 py-0.5 rounded">
+                        <span className="font-mono bg-amber-100 dark:bg-amber-800/50 px-2 py-0.5 rounded text-amber-900 dark:text-amber-100">
                           {user?.email}
                         </span>
                       </p>
                     </div>
-                    <p className="text-sm text-amber-800 mt-3">
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mt-3">
                       Pour accéder au dashboard, veuillez vous connecter avec un
                       compte SUPER_ADMIN ou contactez un administrateur système.
                     </p>
@@ -105,13 +105,13 @@ export function DashboardPage() {
           )}
 
           {/* Message d'erreur */}
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
             <CardContent className="pt-6">
-              <div className="text-center text-red-600">
+              <div className="text-center text-red-600 dark:text-red-400">
                 <p className="font-semibold mb-2">
                   Erreur lors du chargement des statistiques
                 </p>
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-red-500 dark:text-red-300">
                   {error instanceof Error
                     ? error.message
                     : "Une erreur inconnue s'est produite"}
@@ -143,16 +143,18 @@ export function DashboardPage() {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* En-tête */}
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold">Vue d'ensemble des activités</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">
+            Vue d'ensemble des activités
+          </h2>
           <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted-foreground">
             Métriques clés pour le suivi de votre business
           </p>
         </div>
 
-        {/* KPIs Principaux - Toujours visibles */}
+        {/* 1. KPIs Principaux - Toujours visibles */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="Clients Actifs"
+            title="Hôtels Actifs"
             value={stats.activeHotels || 0}
             subtitle={`${stats.totalHotels || 0} au total`}
             trend={stats.activeHotelsTrend || undefined}
@@ -190,29 +192,77 @@ export function DashboardPage() {
           />
         </div>
 
-        {/* Section Clients - Collapsible */}
+        {/* 2. Évolution MRR & Hôtels */}
+        <FinancialChart />
+
+        {/* 6. Activité Quotidienne */}
+        <ActivityChart />
+
+        {/* 3. Répartition par Plan d'Abonnement */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg">
+                Répartition par Plan d'Abonnement
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 grid-cols-2">
+                <PlanCard plan="FREE" count={stats.planCounts?.free || 0} />
+                <PlanCard plan="TRIAL" count={stats.planCounts?.trial || 0} />
+                <PlanCard
+                  plan="STARTER"
+                  count={stats.planCounts?.starter || 0}
+                />
+                <PlanCard
+                  plan="PROFESSIONAL"
+                  count={stats.planCounts?.professional || 0}
+                />
+                <PlanCard
+                  plan="ENTERPRISE"
+                  count={stats.planCounts?.enterprise || 0}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <PlanDistributionChart
+            planCounts={
+              stats.planCounts || {
+                free: 0,
+                trial: 0,
+                starter: 0,
+                professional: 0,
+                enterprise: 0,
+              }
+            }
+          />
+        </div>
+
+        {/* 4. Sections Détaillées - Collapsibles */}
+        {/* Section Hôtels - Collapsible */}
         <Card>
           <CardHeader
-            className="cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={() => toggleSection("clients")}
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            onClick={() => toggleSection("hotels")}
           >
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5" />
-                Détails Clients & Pipeline
+                Détails Hôtels & Pipeline
               </CardTitle>
-              {openSections.clients ? (
+              {openSections.hotels ? (
                 <ChevronUp className="h-5 w-5" />
               ) : (
                 <ChevronDown className="h-5 w-5" />
               )}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {openSections.clients ? "Masquer" : "Voir"} les statistiques
-              détaillées des clients
+              {openSections.hotels ? "Masquer" : "Voir"} les statistiques
+              détaillées des hôtels
             </p>
           </CardHeader>
-          {openSections.clients && (
+          {openSections.hotels && (
             <CardContent>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
@@ -250,7 +300,7 @@ export function DashboardPage() {
                         )}%`
                       : "0%"
                   }
-                  subtitle="Trials → Clients payants"
+                  subtitle="Trials → Hôtels payants"
                   icon={Target}
                   color="purple"
                 />
@@ -262,7 +312,7 @@ export function DashboardPage() {
         {/* Section Utilisateurs - Collapsible */}
         <Card>
           <CardHeader
-            className="cursor-pointer hover:bg-gray-50 transition-colors"
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             onClick={() => toggleSection("users")}
           >
             <div className="flex items-center justify-between">
@@ -309,7 +359,7 @@ export function DashboardPage() {
                         ) / 10
                       : 0
                   }
-                  subtitle="Utilisateurs par client"
+                  subtitle="Utilisateurs par hôtel"
                   icon={Users}
                   color="purple"
                 />
@@ -321,7 +371,7 @@ export function DashboardPage() {
         {/* Section Revenus - Collapsible */}
         <Card>
           <CardHeader
-            className="cursor-pointer hover:bg-gray-50 transition-colors"
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             onClick={() => toggleSection("revenue")}
           >
             <div className="flex items-center justify-between">
@@ -352,13 +402,13 @@ export function DashboardPage() {
                 />
 
                 <StatCard
-                  title="MRR par Client"
+                  title="MRR par Hôtel"
                   value={
                     stats.activeHotels > 0
                       ? `${Math.round((stats.mrr || 0) / stats.activeHotels)} €`
                       : "0 €"
                   }
-                  subtitle="Revenu moyen par client actif"
+                  subtitle="Revenu moyen par hôtel actif"
                   icon={DollarSign}
                   color="purple"
                 />
@@ -383,7 +433,7 @@ export function DashboardPage() {
         {/* Section Performance - Collapsible */}
         <Card>
           <CardHeader
-            className="cursor-pointer hover:bg-gray-50 transition-colors"
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             onClick={() => toggleSection("performance")}
           >
             <div className="flex items-center justify-between">
@@ -408,13 +458,13 @@ export function DashboardPage() {
                 <StatCard
                   title="Taux de Churn"
                   value={`${stats.churnRate || 0}%`}
-                  subtitle="Clients perdus"
+                  subtitle="Hôtels perdus"
                   icon={TrendingDown}
                   color="red"
                 />
 
                 <StatCard
-                  title="Croissance Clients"
+                  title="Croissance Hôtels"
                   value={stats.activeHotelsTrend || "0%"}
                   subtitle="Évolution sur 60 jours"
                   icon={TrendingUp}
@@ -425,57 +475,12 @@ export function DashboardPage() {
           )}
         </Card>
 
-        {/* Répartition par plan avec graphique */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Répartition par Plan d'Abonnement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 grid-cols-2">
-                <PlanCard plan="FREE" count={stats.planCounts?.free || 0} />
-                <PlanCard
-                  plan="STARTER"
-                  count={stats.planCounts?.starter || 0}
-                />
-                <PlanCard
-                  plan="PROFESSIONAL"
-                  count={stats.planCounts?.professional || 0}
-                />
-                <PlanCard
-                  plan="ENTERPRISE"
-                  count={stats.planCounts?.enterprise || 0}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <PlanDistributionChart
-            planCounts={stats.planCounts || { free: 0, starter: 0, professional: 0, enterprise: 0 }}
-          />
-        </div>
-
-        {/* Alertes & Actions Requises */}
+        {/* 5. Alertes & Actions Requises */}
         <Card>
           <CardHeader>
             <CardTitle>🚨 Alertes & Actions Requises</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {stats.overLimitHotels && stats.overLimitHotels.length > 0 && (
-              <>
-                {stats.overLimitHotels.map((hotel) => (
-                  <AlertItem
-                    key={hotel.id}
-                    type="error"
-                    title={hotel.name}
-                    message={`Limite de ${hotel.limitType} atteinte`}
-                    action="Voir détails"
-                    onAction={() => navigate(`/hotels/${hotel.id}`)}
-                  />
-                ))}
-              </>
-            )}
-
             {stats.endingTrials && stats.endingTrials.length > 0 && (
               <>
                 {stats.endingTrials.map((hotel) => (
@@ -506,8 +511,7 @@ export function DashboardPage() {
               </>
             )}
 
-            {(!stats.overLimitHotels || stats.overLimitHotels.length === 0) &&
-              (!stats.endingTrials || stats.endingTrials.length === 0) &&
+            {(!stats.endingTrials || stats.endingTrials.length === 0) &&
               (!stats.lowActivityHotels ||
                 stats.lowActivityHotels.length === 0) && (
                 <p className="text-center text-muted-foreground py-4">
@@ -516,12 +520,6 @@ export function DashboardPage() {
               )}
           </CardContent>
         </Card>
-
-        {/* Graphiques */}
-        <div className="space-y-4 sm:space-y-6">
-          <FinancialChart />
-          <ActivityChart />
-        </div>
       </div>
     </div>
   );

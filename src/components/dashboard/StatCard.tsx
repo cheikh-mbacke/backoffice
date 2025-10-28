@@ -13,17 +13,19 @@ interface StatCardProps {
 }
 
 const colorClasses = {
-  blue: "text-blue-600 bg-blue-100",
-  green: "text-green-600 bg-green-100",
-  purple: "text-purple-600 bg-purple-100",
-  orange: "text-orange-600 bg-orange-100",
-  red: "text-red-600 bg-red-100",
+  blue: "text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30",
+  green: "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30",
+  purple:
+    "text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30",
+  orange:
+    "text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30",
+  red: "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30",
 };
 
 const trendClasses = {
-  positive: "text-green-600",
-  negative: "text-red-600",
-  neutral: "text-gray-600",
+  positive: "text-green-600 dark:text-green-400",
+  negative: "text-red-600 dark:text-red-400",
+  neutral: "text-gray-600 dark:text-gray-400",
 };
 
 export function StatCard({

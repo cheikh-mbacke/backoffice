@@ -1,8 +1,9 @@
 // src/pages/Users/UserFormDialog.tsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Wand2, Eye, EyeOff, Copy, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,21 +32,45 @@ import {
 import { useUsers } from "@/hooks/useUsers";
 import { useHotels } from "@/hooks/useHotels";
 import { User, UserRole, CreateUserDto } from "@/types";
+import { usersService } from "@/services/users.service";
+import { toast } from "sonner";
 
 const userSchema = z.object({
   email: z.string().email("Email invalide"),
   password: z
     .string()
-    .min(6, "Le mot de passe doit contenir au moins 6 caractères")
-    .optional(),
+    .min(6, "Le mot de passe doit contenir au moins 6 caractères"),
   firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
-  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-  hotelId: z.string().min(1, "Veuillez sélectionner un hôtel"), // OBLIGATOIRE pour les ADMIN
-  phone: z.string().optional(), // NOUVEAU
-  position: z.string().optional(), // NOUVEAU (ex: "Directeur", "Responsable Réception")
+  lastName: z
+    .string()
+    .refine(
+      (val) => val.trim().length === 0 || val.trim().length >= 2,
+      "Le nom doit contenir au moins 2 caractères"
+    )
+    .optional(),
+  hotelId: z.string().min(1, "Veuillez sélectionner un hôtel"),
+  phone: z.string().optional(),
+  position: z.string().optional(),
+});
+
+// Schéma pour l'édition (sans mot de passe obligatoire)
+const userEditSchema = z.object({
+  email: z.string().email("Email invalide"),
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastName: z
+    .string()
+    .refine(
+      (val) => val.trim().length === 0 || val.trim().length >= 2,
+      "Le nom doit contenir au moins 2 caractères"
+    )
+    .optional(),
+  hotelId: z.string().min(1, "Veuillez sélectionner un hôtel"),
+  phone: z.string().optional(),
+  position: z.string().optional(),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
+type UserEditFormValues = z.infer<typeof userEditSchema>;
 
 interface UserFormDialogProps {
   open: boolean;
@@ -61,25 +86,43 @@ export function UserFormDialog({
   const { createUser, updateUser, isCreating, isUpdating } = useUsers();
   const { hotels } = useHotels(1, 100); // Récupérer tous les hôtels
   const isEditing = !!user;
+  const [showPassword, setShowPassword] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [createdUser, setCreatedUser] = useState<{
+    id: string;
+    email: string;
+    password: string;
+  } | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailDestination, setEmailDestination] = useState("");
 
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      firstName: "",
-      lastName: "",
-      hotelId: "",
-      phone: "",
-      position: "",
-    },
+  const form = useForm<UserFormValues | UserEditFormValues>({
+    resolver: zodResolver(isEditing ? userEditSchema : userSchema),
+    defaultValues: isEditing
+      ? {
+          email: "",
+          firstName: "",
+          lastName: "",
+          hotelId: "",
+          phone: "",
+          position: "",
+        }
+      : {
+          email: "",
+          password: "",
+          firstName: "",
+          lastName: "",
+          hotelId: "",
+          phone: "",
+          position: "",
+        },
   });
 
   useEffect(() => {
     if (user) {
       form.reset({
         email: user.email,
-        password: "", // Ne pas pré-remplir le mot de passe
         firstName: user.firstName,
         lastName: user.lastName,
         hotelId: user.hotelId || "",
@@ -99,22 +142,40 @@ export function UserFormDialog({
     }
   }, [user, form]);
 
-  const onSubmit = (data: UserFormValues) => {
-    // Supprimer le password si vide en mode édition
+  const handleGeneratePassword = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await usersService.generatePassword();
+      form.setValue("password", response.password);
+      toast.success(response.message);
+    } catch (error) {
+      toast.error("Erreur lors de la génération du mot de passe");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    const password = form.getValues("password");
+    if (password) {
+      navigator.clipboard.writeText(password);
+      setIsCopied(true);
+      toast.success("Mot de passe copié dans le presse-papier");
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  const onSubmit = (data: UserFormValues | UserEditFormValues) => {
     const submitData = {
       ...data,
-      role: UserRole.ADMIN, // Toujours ADMIN pour les contacts d'hôtels
+      role: UserRole.ADMIN,
     };
-    if (isEditing && !submitData.password) {
-      delete submitData.password;
-    }
 
     // S'assurer que le password est défini pour la création
-    if (!isEditing && !submitData.password) {
-      submitData.password = "defaultPassword123!"; // Mot de passe par défaut
+    if (!isEditing) {
+      (submitData as any).password = (data as UserFormValues).password;
     }
 
-    // Type assertion pour éviter l'erreur TypeScript
     const createData = submitData as CreateUserDto;
 
     if (isEditing && user) {
@@ -129,12 +190,56 @@ export function UserFormDialog({
       );
     } else {
       createUser(createData, {
-        onSuccess: () => {
-          onOpenChange(false);
-          form.reset();
+        onSuccess: (response) => {
+          // La réponse contient directement l'utilisateur créé
+          setCreatedUser({
+            id: response.id,
+            email: createData.email,
+            password: createData.password,
+          });
+          // Pré-remplir avec l'email de l'utilisateur créé
+          setEmailDestination(createData.email);
         },
       });
     }
+  };
+
+  const handleSendCredentials = async () => {
+    if (!createdUser || !emailDestination) return;
+
+    // Validation simple de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailDestination)) {
+      toast.error("Adresse email invalide");
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response = await usersService.sendCredentials(
+        createdUser.id,
+        createdUser.password,
+        true,
+        emailDestination
+      );
+      toast.success(response.message);
+      // Fermer et réinitialiser
+      setCreatedUser(null);
+      setEmailDestination("");
+      onOpenChange(false);
+      form.reset();
+    } catch (error) {
+      toast.error("Erreur lors de l'envoi de l'email");
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const handleSkipEmail = () => {
+    setCreatedUser(null);
+    setEmailDestination("");
+    onOpenChange(false);
+    form.reset();
   };
 
   return (
@@ -175,7 +280,7 @@ export function UserFormDialog({
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nom *</FormLabel>
+                    <FormLabel>Nom</FormLabel>
                     <FormControl>
                       <Input placeholder="Dupont" {...field} />
                     </FormControl>
@@ -203,22 +308,67 @@ export function UserFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Mot de passe{" "}
-                    {isEditing ? "(laisser vide pour ne pas modifier)" : "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isEditing && (
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mot de passe *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                          className="pr-24"
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={handleGeneratePassword}
+                            disabled={isGenerating}
+                          >
+                            <Wand2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={handleCopyPassword}
+                            disabled={!field.value}
+                          >
+                            {isCopied ? (
+                              <Check className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -304,6 +454,81 @@ export function UserFormDialog({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Dialogue de confirmation pour envoyer les identifiants */}
+      <Dialog
+        open={!!createdUser}
+        onOpenChange={(open) => !open && handleSkipEmail()}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Utilisateur créé avec succès ! 🎉</DialogTitle>
+            <DialogDescription>
+              Voulez-vous envoyer les identifiants de connexion par email ?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="emailTo" className="text-sm font-medium">
+                Adresse email de destination *
+              </label>
+              <Input
+                id="emailTo"
+                type="email"
+                placeholder="email@example.com"
+                value={emailDestination}
+                onChange={(e) => setEmailDestination(e.target.value)}
+                disabled={isSendingEmail}
+              />
+              <p className="text-xs text-muted-foreground">
+                Par défaut : {createdUser?.email}. Vous pouvez modifier pour
+                envoyer à une autre adresse.
+              </p>
+            </div>
+
+            <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+              <p className="text-sm font-medium">
+                Les identifiants suivants seront envoyés :
+              </p>
+              <div className="text-sm space-y-1">
+                <p>
+                  <strong>Email de connexion :</strong> {createdUser?.email}
+                </p>
+                <p>
+                  <strong>Mot de passe :</strong>{" "}
+                  <code className="bg-background px-2 py-1 rounded">
+                    {createdUser?.password}
+                  </code>
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Un email de bienvenue sera envoyé avec les informations de
+              connexion.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSkipEmail}
+              disabled={isSendingEmail}
+            >
+              Plus tard
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSendCredentials}
+              disabled={isSendingEmail}
+            >
+              {isSendingEmail ? "Envoi en cours..." : "Envoyer par email"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

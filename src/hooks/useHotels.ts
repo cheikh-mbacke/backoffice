@@ -3,23 +3,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { hotelsService } from "../services/hotels.service";
 import { CreateHotelDto, UpdateHotelDto, Hotel } from "../types";
 import { toast } from "sonner";
+import { queryKeys, invalidateHotelsData } from "@/lib/queryKeys";
 
 export const useHotels = (page = 1, limit = 10) => {
   const queryClient = useQueryClient();
 
   const hotelsQuery = useQuery({
-    queryKey: ["hotels", page, limit],
+    queryKey: queryKeys.hotels.all(page, limit),
     queryFn: () => hotelsService.getAll(page, limit),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: CreateHotelDto) => hotelsService.create(data),
-    onSuccess: () => {
-      // Invalider toutes les pages de la liste des hotels
-      queryClient.invalidateQueries({ queryKey: ["hotels"] });
-      // Invalider aussi les stats SaaS qui dépendent des hotels
-      queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
-      toast.success("Hôtel créé avec succès");
+    onSuccess: async (response) => {
+      // Invalider tous les caches liés aux hôtels (incluant SaaS)
+      await invalidateHotelsData(queryClient);
+      toast.success(response.message);
     },
     onError: (error: unknown) => {
       const axiosError = error as {
@@ -34,11 +33,46 @@ export const useHotels = (page = 1, limit = 10) => {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateHotelDto }) =>
       hotelsService.update(id, data),
-    onSuccess: (updatedHotel) => {
-      // Mettre à jour le cache de l'hotel individuel
-      queryClient.setQueryData(["hotel", updatedHotel.id], updatedHotel);
+    onMutate: async ({ id, data }) => {
+      // Annuler les requêtes en cours pour éviter les conflits
+      await queryClient.cancelQueries({ queryKey: ["hotels"] });
 
-      // Mettre à jour l'hotel dans toutes les listes paginées
+      // Sauvegarder l'état précédent pour un rollback éventuel
+      const previousHotels = queryClient.getQueriesData({
+        queryKey: ["hotels"],
+      });
+
+      // Optimistic update: mettre à jour immédiatement l'UI
+      queryClient.setQueriesData<{
+        data: Hotel[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>({ queryKey: ["hotels"] }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.map((hotel) =>
+            hotel.id === id ? { ...hotel, ...data } : hotel
+          ),
+        };
+      });
+
+      return { previousHotels };
+    },
+    onSuccess: async (response) => {
+      const { hotel: updatedHotel, message } = response;
+
+      // Mettre à jour le cache de l'hotel individuel
+      queryClient.setQueryData(
+        queryKeys.hotels.detail(updatedHotel.id),
+        updatedHotel
+      );
+
+      // Mettre à jour l'hotel dans toutes les listes paginées avec les données réelles du serveur
       queryClient.setQueriesData<{
         data: Hotel[];
         pagination: {
@@ -57,12 +91,19 @@ export const useHotels = (page = 1, limit = 10) => {
         };
       });
 
-      // Invalider les stats SaaS car le statut/plan peut avoir changé
-      queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
+      // Invalider tous les caches liés aux hôtels
+      await invalidateHotelsData(queryClient);
 
-      toast.success("Hôtel modifié avec succès");
+      toast.success(message);
     },
-    onError: (error: unknown) => {
+    onError: (error: unknown, _, context) => {
+      // Rollback en cas d'erreur
+      if (context?.previousHotels) {
+        context.previousHotels.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+
       const axiosError = error as {
         response?: { data?: { errorMessage?: string } };
       };
@@ -75,7 +116,7 @@ export const useHotels = (page = 1, limit = 10) => {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => hotelsService.delete(id),
-    onSuccess: (_, deletedId) => {
+    onSuccess: async (response, deletedId) => {
       // Retirer l'hotel de toutes les listes paginées
       queryClient.setQueriesData<{
         data: Hotel[];
@@ -94,12 +135,14 @@ export const useHotels = (page = 1, limit = 10) => {
       });
 
       // Supprimer du cache individuel
-      queryClient.removeQueries({ queryKey: ["hotel", deletedId] });
+      queryClient.removeQueries({
+        queryKey: queryKeys.hotels.detail(deletedId),
+      });
 
-      // Invalider les stats SaaS
-      queryClient.invalidateQueries({ queryKey: ["saas", "stats"] });
+      // Invalider tous les caches liés aux hôtels
+      await invalidateHotelsData(queryClient);
 
-      toast.success("Hôtel supprimé avec succès");
+      toast.success(response.message);
     },
     onError: (error: unknown) => {
       const axiosError = error as {
@@ -128,8 +171,19 @@ export const useHotels = (page = 1, limit = 10) => {
 
 export const useHotel = (id: string) => {
   return useQuery({
-    queryKey: ["hotel", id],
+    queryKey: queryKeys.hotels.detail(id),
     queryFn: () => hotelsService.getById(id),
     enabled: !!id,
+    staleTime: 30 * 1000, // 30 secondes - données considérées fraîches pendant 30s
+    refetchInterval: 60 * 1000, // Rafraîchir toutes les 60 secondes
+  });
+};
+
+export const useHotelUsers = (id: string, page = 1, limit = 10) => {
+  return useQuery({
+    queryKey: queryKeys.hotels.users(id, page, limit),
+    queryFn: () => hotelsService.getHotelUsers(id, page, limit),
+    enabled: !!id,
+    staleTime: 30 * 1000, // 30 secondes
   });
 };
