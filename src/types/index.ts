@@ -238,6 +238,7 @@ export interface SaaSStats {
 
   planCounts: {
     free: number;
+    trial: number;
     starter: number;
     professional: number;
     enterprise: number;
