@@ -72,24 +72,37 @@ export const useHotels = (page = 1, limit = 10) => {
         updatedHotel
       );
 
-      // Mettre à jour l'hotel dans toutes les listes paginées avec les données réelles du serveur
-      queryClient.setQueriesData<{
-        data: Hotel[];
-        pagination: {
-          total: number;
-          page: number;
-          limit: number;
-          totalPages: number;
-        };
-      }>({ queryKey: ["hotels"] }, (oldData) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          data: oldData.data.map((hotel) =>
-            hotel.id === updatedHotel.id ? updatedHotel : hotel
-          ),
-        };
-      });
+      // Mettre à jour toutes les listes paginées en s'assurant que la structure correspond
+      queryClient.setQueriesData(
+        { queryKey: ["hotels"] },
+        (oldData: unknown) => {
+          if (
+            !oldData ||
+            typeof oldData !== "object" ||
+            !("data" in oldData) ||
+            !Array.isArray((oldData as any).data)
+          ) {
+            return oldData;
+          }
+
+          const typedData = oldData as {
+            data: Hotel[];
+            pagination?: {
+              total: number;
+              page: number;
+              limit: number;
+              totalPages: number;
+            };
+          };
+
+          return {
+            ...typedData,
+            data: typedData.data.map((hotel) =>
+              hotel.id === updatedHotel.id ? updatedHotel : hotel
+            ),
+          };
+        }
+      );
 
       // Invalider tous les caches liés aux hôtels
       await invalidateHotelsData(queryClient);

@@ -1,8 +1,8 @@
 // src/types/index.ts
 
 export const UserRole = {
-  SUPER_ADMIN: "SUPER_ADMIN",
   ADMIN: "ADMIN",
+  MANAGER: "MANAGER",
   STAFF: "STAFF",
 } as const;
 
@@ -32,7 +32,6 @@ export interface User {
 // Types SaaS
 export const SubscriptionStatus = {
   ACTIVE: "ACTIVE",
-  TRIAL: "TRIAL",
   SUSPENDED: "SUSPENDED",
   CANCELLED: "CANCELLED",
 } as const;
@@ -239,7 +238,6 @@ export interface SaaSStats {
 
   planCounts: {
     free: number;
-    trial: number; // Ajout du plan TRIAL manquant
     starter: number;
     professional: number;
     enterprise: number;

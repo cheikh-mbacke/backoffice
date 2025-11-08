@@ -37,9 +37,9 @@ import {
 } from "@/components/ui/tooltip";
 import { UserRole } from "@/types";
 
-// Filtrage pour ne garder que les ADMIN d'hôtels
-const getHotelAdmins = (users: User[]) => {
-  return users.filter((user) => user.role === UserRole.ADMIN);
+// Filtrage pour ne garder que les MANAGER d'hôtels
+const getHotelManagers = (users: User[]) => {
+  return users.filter((user) => user.role === UserRole.MANAGER);
 };
 
 export function UsersListPage() {
@@ -56,8 +56,8 @@ export function UsersListPage() {
     null
   );
 
-  // Filtrer pour ne garder que les ADMIN d'hôtels
-  const hotelAdmins = getHotelAdmins(users);
+  // Filtrer pour ne garder que les MANAGER d'hôtels
+  const hotelManagers = getHotelManagers(users);
 
   // Fonction pour obtenir le nom de l'hôtel par son ID
   const getHotelName = (hotelId: string | null) => {
@@ -67,23 +67,23 @@ export function UsersListPage() {
   };
 
   // Fonction pour vérifier si un utilisateur est l'admin par défaut de son hôtel
-  const isDefaultAdmin = (user: User) => {
-    if (user.role !== UserRole.ADMIN || !user.hotelId) return false;
+  const isDefaultManager = (user: User) => {
+    if (user.role !== UserRole.MANAGER || !user.hotelId) return false;
 
     // Trouver le premier admin créé pour cet hôtel (le plus ancien)
-    const hotelAdminsForThisHotel = hotelAdmins.filter(
-      (admin) => admin.hotelId === user.hotelId
+    const hotelManagersForThisHotel = hotelManagers.filter(
+      (manager) => manager.hotelId === user.hotelId
     );
 
-    if (hotelAdminsForThisHotel.length === 0) return false;
+    if (hotelManagersForThisHotel.length === 0) return false;
 
     // Trier par date de création et prendre le plus ancien
-    const oldestAdmin = hotelAdminsForThisHotel.sort(
+    const oldestManager = hotelManagersForThisHotel.sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )[0];
 
-    return oldestAdmin.id === user.id;
+    return oldestManager.id === user.id;
   };
 
   const handleDelete = () => {
@@ -96,7 +96,7 @@ export function UsersListPage() {
   if (isLoading) {
     return (
       <div>
-        <Header title="Admins d'Hôtels" />
+        <Header title="Managers d'Hôtels" />
         <div className="p-4 sm:p-6 flex items-center justify-center">
           <p>Chargement...</p>
         </div>
@@ -106,15 +106,15 @@ export function UsersListPage() {
 
   return (
     <div>
-      <Header title="Admins d'Hôtels" />
+      <Header title="Managers d'Hôtels" />
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold">
-              Contacts Principaux des Hôtels
+              Managers des Hôtels
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Gérez les administrateurs d'hôtels (vos contacts principaux)
+              Gérez les managers d'hôtels (vos contacts principaux)
             </p>
           </div>
           <Button
@@ -123,7 +123,9 @@ export function UsersListPage() {
             className="sm:size-default"
           >
             <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Ajouter un Admin d'Hôtel</span>
+            <span className="hidden sm:inline">
+              Ajouter un Manager d'Hôtel
+            </span>
             <span className="sm:hidden">Ajouter</span>
           </Button>
         </div>
@@ -143,17 +145,17 @@ export function UsersListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {hotelAdmins.length === 0 ? (
+                {hotelManagers.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
                       className="text-center text-muted-foreground"
                     >
-                      Aucun admin d'hôtel trouvé
+                      Aucun manager d'hôtel trouvé
                     </TableCell>
                   </TableRow>
                 ) : (
-                  hotelAdmins.map((user) => (
+                  hotelManagers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium whitespace-nowrap">
                         {user.firstName} {user.lastName || ""}
@@ -174,7 +176,7 @@ export function UsersListPage() {
                           variant="secondary"
                           className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                         >
-                          Admin Hôtel
+                          Manager d'Hôtel
                         </Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
@@ -222,9 +224,9 @@ export function UsersListPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setDeletingUser(user)}
-                                disabled={isDefaultAdmin(user)}
+                                disabled={isDefaultManager(user)}
                                 className={
-                                  isDefaultAdmin(user)
+                                  isDefaultManager(user)
                                     ? "opacity-50 cursor-not-allowed"
                                     : ""
                                 }
@@ -234,8 +236,8 @@ export function UsersListPage() {
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>
-                                {isDefaultAdmin(user)
-                                  ? "Impossible de supprimer l'administrateur par défaut de l'hôtel"
+                                {isDefaultManager(user)
+                                  ? "Impossible de supprimer le manager par défaut de l'hôtel"
                                   : "Supprimer l'utilisateur"}
                               </p>
                             </TooltipContent>
@@ -252,12 +254,12 @@ export function UsersListPage() {
 
         {/* Vue Mobile - Cards */}
         <div className="md:hidden space-y-3">
-          {hotelAdmins.length === 0 ? (
+          {hotelManagers.length === 0 ? (
             <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-              Aucun admin d'hôtel trouvé
+              Aucun manager d'hôtel trouvé
             </div>
           ) : (
-            hotelAdmins.map((user) => (
+            hotelManagers.map((user) => (
               <div
                 key={user.id}
                 className="rounded-lg border bg-card overflow-hidden"
@@ -277,7 +279,7 @@ export function UsersListPage() {
                       variant="secondary"
                       className="bg-blue-600 text-white dark:bg-blue-500 dark:text-white flex-shrink-0"
                     >
-                      Admin
+                      Manager
                     </Badge>
                   </div>
                 </div>
@@ -303,11 +305,11 @@ export function UsersListPage() {
                     </span>
                   </div>
 
-                  {isDefaultAdmin(user) && (
+                  {isDefaultManager(user) && (
                     <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800">
                       <Building2 className="h-3.5 w-3.5" />
                       <span>
-                        Admin principal de l'hôtel (ne peut être supprimé)
+                        Manager principal de l'hôtel (ne peut être supprimé)
                       </span>
                     </div>
                   )}
@@ -338,9 +340,9 @@ export function UsersListPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setDeletingUser(user)}
-                    disabled={isDefaultAdmin(user)}
+                    disabled={isDefaultManager(user)}
                     className={
-                      isDefaultAdmin(user)
+                      isDefaultManager(user)
                         ? "opacity-50 cursor-not-allowed"
                         : "text-destructive hover:text-destructive border-destructive/30"
                     }
@@ -410,11 +412,11 @@ export function UsersListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deletingUser && isDefaultAdmin(deletingUser) ? (
+              {deletingUser && isDefaultManager(deletingUser) ? (
                 <div className="text-red-600">
                   <strong>Impossible de supprimer cet utilisateur.</strong>
                   <br />
-                  Cet utilisateur est l'administrateur par défaut de l'hôtel "
+                  Cet utilisateur est le manager par défaut de l'hôtel "
                   {getHotelName(deletingUser.hotelId)}" et ne peut pas être
                   supprimé pour des raisons de sécurité et de continuité de
                   service.
@@ -430,7 +432,7 @@ export function UsersListPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            {deletingUser && !isDefaultAdmin(deletingUser) && (
+            {deletingUser && !isDefaultManager(deletingUser) && (
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

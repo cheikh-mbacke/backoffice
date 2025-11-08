@@ -66,19 +66,19 @@ export function DashboardPage() {
       <div>
         <Header title="Dashboard SaaS" />
         <div className="p-6 space-y-4">
-          {/* Avertissement si l'utilisateur n'est pas SUPER_ADMIN */}
-          {user?.role !== UserRole.SUPER_ADMIN && (
+          {/* Avertissement si l'utilisateur n'est pas ADMIN (plateforme) */}
+          {user?.role !== UserRole.ADMIN && (
             <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
                   <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
-                      Accès restreint - Rôle SUPER_ADMIN requis
+                      Accès restreint - Rôle ADMIN requis
                     </h3>
                     <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
                       Le dashboard SaaS n'est accessible qu'aux utilisateurs
-                      avec le rôle <strong>SUPER_ADMIN</strong>.
+                      avec le rôle <strong>ADMIN</strong> (plateforme).
                     </p>
                     <div className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
                       <p>
@@ -96,7 +96,7 @@ export function DashboardPage() {
                     </div>
                     <p className="text-sm text-amber-800 dark:text-amber-200 mt-3">
                       Pour accéder au dashboard, veuillez vous connecter avec un
-                      compte SUPER_ADMIN ou contactez un administrateur système.
+                      compte ADMIN (plateforme) ou contactez un administrateur système.
                     </p>
                   </div>
                 </div>

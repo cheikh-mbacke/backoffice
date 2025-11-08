@@ -33,20 +33,24 @@ import { Hotel, SubscriptionPlan, SubscriptionStatus } from "@/types";
 const hotelSchema = z.object({
   name: z
     .string()
-    .min(3, "Le nom doit contenir au moins 3 caractères")
+    .min(2, "Le nom doit contenir au moins 2 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères"),
   address: z
     .string()
-    .max(255, "L'adresse ne peut pas dépasser 255 caractères")
+    .max(200, "L'adresse ne peut pas dépasser 200 caractères")
     .optional(),
 
   // CHAMPS SaaS
   status: z.nativeEnum(SubscriptionStatus).optional(),
   subscriptionPlan: z.nativeEnum(SubscriptionPlan),
 
-  contactName: z.string().optional(),
-  contactEmail: z.string().email("Email invalide").optional().or(z.literal("")),
-  contactPhone: z.string().optional(),
+  contactName: z.string().max(100, "Le nom du contact ne peut pas dépasser 100 caractères").optional(),
+  contactEmail: z
+    .string()
+    .email("Email invalide")
+    .optional()
+    .or(z.literal("")),
+  contactPhone: z.string().max(20, "Le téléphone ne peut pas dépasser 20 caractères").optional(),
 });
 
 type HotelFormValues = z.infer<typeof hotelSchema>;
@@ -70,7 +74,7 @@ export function HotelFormDialog({
     defaultValues: {
       name: "",
       address: "",
-      subscriptionPlan: SubscriptionPlan.STARTER,
+      subscriptionPlan: SubscriptionPlan.TRIAL,
       contactName: "",
       contactEmail: "",
       contactPhone: "",
@@ -100,10 +104,29 @@ export function HotelFormDialog({
     }
   }, [hotel, form]);
 
+  const sanitizePayload = (values: HotelFormValues, isCreate = false) => {
+    const payload = {
+      ...values,
+      contactName: values.contactName?.trim() || undefined,
+      contactEmail: values.contactEmail?.trim()
+        ? values.contactEmail.trim()
+        : undefined,
+      contactPhone: values.contactPhone?.trim() || undefined,
+      address: values.address?.trim() || undefined,
+    };
+
+    if (isCreate) {
+      delete payload.status;
+    }
+
+    return payload;
+  };
+
   const onSubmit = (data: HotelFormValues) => {
     if (isEditing && hotel) {
+      const payload = sanitizePayload(data);
       updateHotel(
-        { id: hotel.id, data },
+        { id: hotel.id, data: payload },
         {
           onSuccess: () => {
             onOpenChange(false);
@@ -112,7 +135,8 @@ export function HotelFormDialog({
         }
       );
     } else {
-      createHotel(data, {
+      const payload = sanitizePayload(data, true);
+      createHotel(payload, {
         onSuccess: () => {
           onOpenChange(false);
           form.reset();
@@ -213,9 +237,6 @@ export function HotelFormDialog({
                       <SelectContent>
                         <SelectItem value={SubscriptionStatus.ACTIVE}>
                           ✅ ACTIF - Accès complet
-                        </SelectItem>
-                        <SelectItem value={SubscriptionStatus.TRIAL}>
-                          🆓 ESSAI - Période d'essai
                         </SelectItem>
                         <SelectItem value={SubscriptionStatus.SUSPENDED}>
                           ⏸️ SUSPENDU - Accès bloqué

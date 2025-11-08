@@ -44,7 +44,7 @@ export const profilePhotosService = {
       } else if (error.response?.status === 401) {
         throw new Error("Session expirée. Veuillez vous reconnecter.");
       } else if (error.response?.status === 413) {
-        throw new Error("Fichier trop volumineux. Taille maximale : 2MB");
+        throw new Error("Fichier trop volumineux. Taille maximale : 10MB");
       } else if (error.response?.data?.errorMessage) {
         throw new Error(error.response.data.errorMessage);
       } else if (error.code === "NETWORK_ERROR" || !error.response) {
@@ -110,12 +110,12 @@ export const profilePhotosService = {
       };
     }
 
-    // Vérifier la taille (2MB max)
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    // Vérifier la taille (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return {
         isValid: false,
-        error: "Fichier trop volumineux. Taille maximale : 2MB",
+        error: "Fichier trop volumineux. Taille maximale : 10MB",
       };
     }
 

@@ -211,7 +211,7 @@ export function ProfilePhotoUpload({
             <DialogDescription className="text-base">
               Sélectionnez une image pour votre profil. <br />
               <span className="font-medium">Formats acceptés :</span> JPG, PNG,
-              WebP (max 2MB)
+              WebP (max 10MB)
             </DialogDescription>
           </DialogHeader>
 
@@ -264,7 +264,7 @@ export function ProfilePhotoUpload({
                     <div className="px-2 py-1 rounded bg-muted">JPG</div>
                     <div className="px-2 py-1 rounded bg-muted">PNG</div>
                     <div className="px-2 py-1 rounded bg-muted">WebP</div>
-                    <div className="px-2 py-1 rounded bg-muted">Max 2MB</div>
+                    <div className="px-2 py-1 rounded bg-muted">Max 10MB</div>
                   </div>
                 </div>
               )}

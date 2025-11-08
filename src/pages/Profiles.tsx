@@ -106,11 +106,11 @@ export default function ProfilesPage() {
     }
 
     try {
-      // Pour les SUPER_ADMIN, on doit permettre la sélection d'un hôtel
+      // Pour les ADMIN (super admin), on doit permettre la sélection d'un hôtel
       // Pour les autres rôles, utiliser l'hôtel de l'utilisateur
       const profileData: any = {
         name: formName.trim(),
-        role: user?.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "STAFF", // Utiliser le rôle de l'utilisateur pour SUPER_ADMIN
+        role: user?.role === "ADMIN" ? "ADMIN" : user?.role || "STAFF",
         isDefault: false, // Nouveau profil n'est jamais par défaut
         isActive: true, // Nouveau profil est toujours actif
         userId: user?.id || "",
@@ -119,10 +119,10 @@ export default function ProfilesPage() {
       // Ajouter hotelId seulement si l'utilisateur en a un
       if (user?.hotelId) {
         profileData.hotelId = user.hotelId;
-      } else if (user?.role === "SUPER_ADMIN") {
-        // Pour les SUPER_ADMIN sans hôtel, créer un profil SUPER_ADMIN (pas besoin d'hôtel)
-        profileData.role = "SUPER_ADMIN";
-        profileData.hotelId = null; // SUPER_ADMIN peut avoir hotelId null
+      } else if (user?.role === "ADMIN") {
+        // Pour les ADMIN sans hôtel, créer un profil ADMIN (pas besoin d'hôtel)
+        profileData.role = "ADMIN";
+        profileData.hotelId = null; // L'ADMIN global peut avoir hotelId null
       }
 
       const result = await createProfile(profileData);

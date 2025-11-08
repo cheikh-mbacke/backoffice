@@ -129,8 +129,6 @@ export function HotelDetailsPage() {
     switch (status) {
       case SubscriptionStatus.ACTIVE:
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case SubscriptionStatus.TRIAL:
-        return <AlertTriangle className="h-4 w-4 text-blue-600" />;
       case SubscriptionStatus.SUSPENDED:
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
       case SubscriptionStatus.CANCELLED:
@@ -372,7 +370,7 @@ export function HotelDetailsPage() {
                               <TableCell className="whitespace-nowrap">
                                 <Badge
                                   variant={
-                                    user.role === "ADMIN"
+                                    user.role === "MANAGER"
                                       ? "default"
                                       : "secondary"
                                   }
@@ -431,7 +429,7 @@ export function HotelDetailsPage() {
                               </div>
                               <Badge
                                 variant={
-                                  user.role === "ADMIN"
+                                  user.role === "MANAGER"
                                     ? "default"
                                     : "secondary"
                                 }

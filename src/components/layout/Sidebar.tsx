@@ -34,7 +34,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Hôtels", href: "/hotels", icon: Building2 },
-  { name: "Admins Hôtels", href: "/users", icon: Users },
+  { name: "Managers Hôtels", href: "/users", icon: Users },
   { name: "Mes Profils", href: "/profiles", icon: UserIcon },
   { name: "Mon Compte", href: "/account", icon: Shield },
 ];
@@ -53,10 +53,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   // Fonction pour obtenir le label du rôle (simplifié)
   const getRoleLabel = (role?: string) => {
     switch (role) {
-      case "SUPER_ADMIN":
-        return "Super Admin";
       case "ADMIN":
-        return "Admin";
+        return "Admin (plateforme)";
+      case "MANAGER":
+        return "Manager";
       case "STAFF":
         return "Staff";
       default:

@@ -23,9 +23,11 @@ import {
   Shield,
   Building2,
   Plus,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { profilePhotosService } from "@/services/profilePhotos.service";
+import { User } from "@/types";
 
 interface ProfileSelectionDialogProps {
   open: boolean;
@@ -48,6 +50,10 @@ export function ProfileSelectionDialog({
   const [creating, setCreating] = useState(false);
   const [profileName, setProfileName] = useState("");
   const queryClient = useQueryClient();
+  
+  // Récupérer l'utilisateur actuel pour savoir quel profil est sélectionné
+  const currentUser = queryClient.getQueryData<User>(queryKeys.auth.currentUser);
+  const currentProfileId = currentUser?.currentProfileId;
 
   useEffect(() => {
     if (open) {
@@ -144,10 +150,10 @@ export function ProfileSelectionDialog({
       // Ajouter hotelId seulement si l'utilisateur en a un
       if (currentUser.hotelId) {
         profileData.hotelId = currentUser.hotelId;
-      } else if (currentUser.role === "SUPER_ADMIN") {
-        // Pour les SUPER_ADMIN sans hôtel, créer un profil SUPER_ADMIN (pas besoin d'hôtel)
-        profileData.role = "SUPER_ADMIN";
-        profileData.hotelId = null; // SUPER_ADMIN peut avoir hotelId null
+      } else if (currentUser.role === "ADMIN") {
+        // Pour les ADMIN (super admin) sans hôtel, créer un profil ADMIN (pas besoin d'hôtel)
+        profileData.role = "ADMIN";
+        profileData.hotelId = null; // L'ADMIN global peut avoir hotelId null
       }
 
       const response = await profilesService.create(profileData);
@@ -169,9 +175,9 @@ export function ProfileSelectionDialog({
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case "SUPER_ADMIN":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
       case "ADMIN":
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+      case "MANAGER":
         return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
       case "STAFF":
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
@@ -182,10 +188,10 @@ export function ProfileSelectionDialog({
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case "SUPER_ADMIN":
-        return "Super Admin";
       case "ADMIN":
-        return "Admin";
+        return "Admin (plateforme)";
+      case "MANAGER":
+        return "Manager d'hôtel";
       case "STAFF":
         return "Staff";
       default:
@@ -340,91 +346,111 @@ export function ProfileSelectionDialog({
               </Button>
             </div>
           ) : (
-            profiles.map((profile) => (
-              <Card
-                key={profile.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleSelectProfile(profile.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 overflow-hidden">
-                          {profile.avatarUrl ? (
-                            <img
-                              src={
-                                profilePhotosService.getProfilePhotoUrl(
-                                  profile.avatarUrl
-                                ) || ""
-                              }
-                              alt={`Photo de ${profile.name}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const nextElement = e.currentTarget
-                                  .nextElementSibling as HTMLElement;
-                                if (nextElement) {
-                                  nextElement.style.display = "flex";
+            profiles.map((profile) => {
+              const isActive = profile.id === currentProfileId;
+              return (
+                <Card
+                  key={profile.id}
+                  className={`cursor-pointer hover:shadow-md transition-all ${
+                    isActive
+                      ? "border-2 border-primary shadow-md ring-2 ring-primary/20"
+                      : ""
+                  }`}
+                  onClick={() => handleSelectProfile(profile.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 overflow-hidden">
+                            {profile.avatarUrl ? (
+                              <img
+                                src={
+                                  profilePhotosService.getProfilePhotoUrl(
+                                    profile.avatarUrl
+                                  ) || ""
                                 }
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            className={`w-full h-full flex items-center justify-center ${
-                              profile.avatarUrl ? "hidden" : "flex"
-                            }`}
-                          >
-                            <UserIcon className="h-5 w-5 text-primary" />
+                                alt={`Photo de ${profile.name}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  const nextElement = e.currentTarget
+                                    .nextElementSibling as HTMLElement;
+                                  if (nextElement) {
+                                    nextElement.style.display = "flex";
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={`w-full h-full flex items-center justify-center ${
+                                profile.avatarUrl ? "hidden" : "flex"
+                              }`}
+                            >
+                              <UserIcon className="h-5 w-5 text-primary" />
+                            </div>
+                            {/* Indicateur de profil actif */}
+                            {isActive && (
+                              <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
+                                <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-base">
+                                {profile.name}
+                              </h3>
+                              {isActive && (
+                                <Badge className="bg-primary/15 text-primary hover:bg-primary/20 border-primary/30">
+                                  Actif
+                                </Badge>
+                              )}
+                            </div>
+                            {profile.isDefault && (
+                              <span className="text-xs text-muted-foreground">
+                                Par défaut
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-base">
-                            {profile.name}
-                          </h3>
-                          {profile.isDefault && (
-                            <span className="text-xs text-muted-foreground">
-                              Profil par défaut
-                            </span>
+
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge className={getRoleBadgeColor(profile.role)}>
+                            <Shield className="h-3 w-3 mr-1" />
+                            {getRoleLabel(profile.role)}
+                          </Badge>
+
+                          {profile.hotel && (
+                            <Badge variant="outline">
+                              <Building2 className="h-3 w-3 mr-1" />
+                              {profile.hotel.name}
+                            </Badge>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge className={getRoleBadgeColor(profile.role)}>
-                          <Shield className="h-3 w-3 mr-1" />
-                          {getRoleLabel(profile.role)}
-                        </Badge>
-
-                        {profile.hotel && (
-                          <Badge variant="outline">
-                            <Building2 className="h-3 w-3 mr-1" />
-                            {profile.hotel.name}
-                          </Badge>
+                      <Button
+                        disabled={selecting === profile.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectProfile(profile.id);
+                        }}
+                      >
+                        {selecting === profile.id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sélection...
+                          </>
+                        ) : (
+                          "Sélectionner"
                         )}
-                      </div>
+                      </Button>
                     </div>
-
-                    <Button
-                      disabled={selecting === profile.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectProfile(profile.id);
-                      }}
-                    >
-                      {selecting === profile.id ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sélection...
-                        </>
-                      ) : (
-                        "Sélectionner"
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
 
           {/* Bouton pour créer un nouveau profil */}

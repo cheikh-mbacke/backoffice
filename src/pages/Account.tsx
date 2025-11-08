@@ -250,7 +250,7 @@ export default function AccountPage() {
     },
   });
 
-  // Formulaire de création de Super Admin
+// Formulaire de création d'Admin plateforme
   const superAdminForm = useForm<SuperAdminFormValues>({
     resolver: zodResolver(superAdminFormSchema),
     defaultValues: {
@@ -291,7 +291,7 @@ export default function AccountPage() {
     },
   });
 
-  // Mutation pour créer un Super Admin
+// Mutation pour créer un Admin plateforme
   const createSuperAdminMutation = useMutation({
     mutationFn: (data: SuperAdminFormValues) =>
       usersService.create({
@@ -299,10 +299,10 @@ export default function AccountPage() {
         lastName: data.lastName || undefined,
         email: data.email,
         password: data.password,
-        role: "SUPER_ADMIN",
+      role: "ADMIN",
       }),
     onSuccess: (response) => {
-      toast.success(`Super Admin créé avec succès : ${response.email}`);
+    toast.success(`Admin plateforme créé avec succès : ${response.email}`);
       setShowCreateSuperAdminDialog(false);
       superAdminForm.reset();
     },
@@ -312,7 +312,7 @@ export default function AccountPage() {
       };
       toast.error(
         axiosError.response?.data?.errorMessage ||
-          "Erreur lors de la création du Super Admin"
+        "Erreur lors de la création de l'admin plateforme"
       );
     },
   });
@@ -380,14 +380,14 @@ export default function AccountPage() {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case "SUPER_ADMIN":
-        return "Super Administrateur";
-      case "ADMIN":
-        return "Administrateur";
-      case "STAFF":
-        return "Personnel";
-      default:
-        return role;
+    case "ADMIN":
+      return "Administrateur (plateforme)";
+    case "MANAGER":
+      return "Manager";
+    case "STAFF":
+      return "Personnel";
+    default:
+      return role;
     }
   };
 
@@ -643,8 +643,8 @@ export default function AccountPage() {
           </CardContent>
         </Card>
 
-        {/* Section création Super Admin (Super Admin seulement) */}
-        {user?.role === "SUPER_ADMIN" && (
+        {/* Section création Admin plateforme (Admin seulement) */}
+        {user?.role === "ADMIN" && (
           <Card className="mb-6 shadow-sm hover:shadow-md transition-shadow duration-200 border-2 border-primary/20">
             <CardHeader className="space-y-1">
               <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
@@ -682,8 +682,8 @@ export default function AccountPage() {
           </Card>
         )}
 
-        {/* Section compte par défaut (Super Admin seulement) */}
-        {user?.role === "SUPER_ADMIN" && (
+        {/* Section compte par défaut (Admin seulement) */}
+        {user?.role === "ADMIN" && (
           <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-2 border-amber-200 dark:border-amber-900">
             <CardHeader className="space-y-1">
               <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
@@ -773,7 +773,7 @@ export default function AccountPage() {
           </Card>
         )}
 
-        {/* Dialog création Super Admin */}
+        {/* Dialog création Admin plateforme */}
         <Dialog
           open={showCreateSuperAdminDialog}
           onOpenChange={setShowCreateSuperAdminDialog}

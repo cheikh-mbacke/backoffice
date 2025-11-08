@@ -168,7 +168,7 @@ export function UserFormDialog({
   const onSubmit = (data: UserFormValues | UserEditFormValues) => {
     const submitData = {
       ...data,
-      role: UserRole.ADMIN,
+      role: UserRole.MANAGER,
     };
 
     // S'assurer que le password est défini pour la création
@@ -248,13 +248,13 @@ export function UserFormDialog({
         <DialogHeader>
           <DialogTitle>
             {isEditing
-              ? "Modifier l'Admin d'Hôtel"
-              : "Ajouter un Admin d'Hôtel"}
+              ? "Modifier le Manager d'Hôtel"
+              : "Ajouter un Manager d'Hôtel"}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Modifiez les informations du contact principal de l'hôtel"
-              : "Ajoutez un nouveau contact principal pour un hôtel"}
+              ? "Modifiez les informations du manager de l'hôtel"
+              : "Ajoutez un nouveau manager pour un hôtel"}
           </DialogDescription>
         </DialogHeader>
 
@@ -394,7 +394,7 @@ export function UserFormDialog({
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    L'hôtel pour lequel cette personne sera l'administrateur
+                    L'hôtel pour lequel cette personne sera le manager
                     principal
                   </FormDescription>
                   <FormMessage />

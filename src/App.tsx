@@ -20,7 +20,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="shiftlog-theme">
         <RouterProvider router={router} />
-        <Toaster position="top-right" richColors />
+        <Toaster 
+          position="top-right" 
+          richColors 
+          duration={3000}
+          closeButton
+        />
       </ThemeProvider>
     </QueryClientProvider>
   );
