@@ -39,12 +39,31 @@ const PLAN_LABELS = {
 export function PlanDistributionChart({
   planCounts,
 }: PlanDistributionChartProps) {
+  // Vérifier si planCounts est défini et valide
+  if (!planCounts) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            Répartition par Plan
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-[300px]">
+          <p className="text-muted-foreground text-sm">
+            Aucune donnée disponible
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Transformer les données pour Recharts
   const chartData = Object.entries(planCounts)
-    .filter(([, value]) => value > 0) // Ne montrer que les plans avec des hôtels
+    .filter(([, value]) => typeof value === "number" && value > 0) // Ne montrer que les plans avec des hôtels
     .map(([key, value]) => ({
       name: PLAN_LABELS[key as keyof typeof PLAN_LABELS],
-      value,
+      value: Number(value),
       color: COLORS[key as keyof typeof COLORS],
     }));
 

@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { authService } from "@/services/auth.service";
-import { ProfileSelectionDialog } from "@/components/auth/ProfileSelectionDialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,7 +38,6 @@ export function LoginPage() {
     useAuth();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showProfileSelection, setShowProfileSelection] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -49,35 +47,6 @@ export function LoginPage() {
     },
   });
 
-  const checkUserProfiles = useCallback(async () => {
-    try {
-      const { profiles, hasDefaultProfile } =
-        await authService.getAvailableProfiles();
-
-      // Si aucun profil n'existe, forcer la création
-      if (profiles.length === 0) {
-        setShowProfileSelection(true);
-        return;
-      }
-
-      // Si aucun profil par défaut n'existe, forcer la création
-      if (!hasDefaultProfile) {
-        setShowProfileSelection(true);
-        return;
-      }
-
-      // Si l'utilisateur a un profil sélectionné, rediriger
-      if (user?.currentProfileId) {
-        navigate("/", { replace: true });
-      } else {
-        // Sinon, afficher la sélection de profil
-        setShowProfileSelection(true);
-      }
-    } catch (error) {
-      // En cas d'erreur, afficher la sélection de profil par sécurité
-      setShowProfileSelection(true);
-    }
-  }, [user?.currentProfileId, navigate]);
 
   // Capturer l'erreur de login dans un état local
   useEffect(() => {
@@ -96,10 +65,16 @@ export function LoginPage() {
   // Gérer la redirection après authentification
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Vérifier si l'utilisateur a des profils disponibles
-      checkUserProfiles();
+      // Vérifier si l'utilisateur a un profil sélectionné
+      if (user.currentProfileId) {
+        // Si un profil est déjà sélectionné, rediriger vers le dashboard
+        navigate("/", { replace: true });
+      } else {
+        // Sinon, rediriger vers la page de sélection de profil
+        navigate("/profiles", { replace: true });
+      }
     }
-  }, [isAuthenticated, user, checkUserProfiles]);
+  }, [isAuthenticated, user, navigate]);
 
   const onSubmit = async (data: LoginFormValues) => {
     // Réinitialiser le message d'erreur avant chaque tentative
@@ -111,24 +86,8 @@ export function LoginPage() {
     }
   };
 
-  const handleProfileSelected = () => {
-    setShowProfileSelection(false);
-    navigate("/", { replace: true });
-  };
-
-  const handleProfileDialogOpenChange = (open: boolean) => {
-    setShowProfileSelection(open);
-  };
-
   return (
     <>
-      <ProfileSelectionDialog
-        open={showProfileSelection}
-        onProfileSelected={handleProfileSelected}
-        onOpenChange={handleProfileDialogOpenChange}
-        requireDefault={true}
-      />
-
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">

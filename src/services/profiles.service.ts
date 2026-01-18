@@ -157,4 +157,49 @@ export const profilesService = {
     }>(`/profiles/${id}`, { data: {} });
     return { message: response.data.message };
   },
+
+  async uploadAvatar(profileId: string, file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post<{
+      status: string;
+      message: string;
+      timestamp: string;
+      avatarUrl: string;
+    }>(`/profiles/${profileId}/avatar`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data.avatarUrl;
+  },
+
+  async deleteAvatar(profileId: string): Promise<void> {
+    await api.delete(`/profiles/${profileId}/avatar`);
+  },
+
+  async setProfilePin(
+    profileId: string,
+    pin?: string,
+    currentPin?: string,
+    newPin?: string
+  ): Promise<void> {
+    if (currentPin && newPin) {
+      await api.post(`/profiles/${profileId}/pin`, { currentPin, newPin });
+    } else if (pin) {
+      await api.post(`/profiles/${profileId}/pin`, { pin });
+    } else {
+      throw new Error("Vous devez fournir soit pin, soit currentPin et newPin");
+    }
+  },
+
+  async changeProfilePin(
+    profileId: string,
+    currentPin: string,
+    newPin: string
+  ): Promise<void> {
+    await api.put(`/profiles/${profileId}/pin`, { currentPin, newPin });
+  },
 };

@@ -30,12 +30,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, []);
 
-  // Vérifier les profils après authentification
+  // Vérifier les profils après authentification (sauf si on est déjà sur /profiles)
   useEffect(() => {
-    if (isAuthenticated && user && !profileCheckComplete) {
+    if (isAuthenticated && user && !profileCheckComplete && location.pathname !== "/profiles") {
       checkUserProfiles();
+    } else if (location.pathname === "/profiles") {
+      // Si on est sur /profiles, marquer comme complété pour éviter les vérifications inutiles
+      setProfileCheckComplete(true);
     }
-  }, [isAuthenticated, user, profileCheckComplete, checkUserProfiles]);
+  }, [isAuthenticated, user, profileCheckComplete, checkUserProfiles, location.pathname]);
 
   // Attendre que le chargement soit terminé avant de décider
   if (isLoading || (isAuthenticated && !profileCheckComplete)) {
@@ -54,9 +57,22 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Si authentifié mais pas de profil par défaut, rediriger vers login
-  if (needsProfile) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  // Si on est déjà sur la page de sélection de profil, ne pas rediriger (éviter la boucle)
+  if (location.pathname === "/profiles") {
+    return <>{children}</>;
+  }
+
+  // Si authentifié mais pas de profil sélectionné, rediriger vers la sélection de profil
+  // Note: Si currentProfileId est défini, on permet l'accès même si needsProfile est true
+  // (car l'utilisateur vient peut-être de sélectionner un profil)
+  if (isAuthenticated && !user?.currentProfileId) {
+    return <Navigate to="/profiles" state={{ from: location }} replace />;
+  }
+
+  // Si pas de profil par défaut mais qu'un profil est sélectionné, permettre l'accès
+  // (l'utilisateur pourra définir un profil par défaut plus tard)
+  if (needsProfile && !user?.currentProfileId) {
+    return <Navigate to="/profiles" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

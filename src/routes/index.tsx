@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoginPage } from "@/pages/Login";
+import { ProfileSelectionPage } from "@/pages/ProfileSelectionPage";
 import { DashboardPage } from "@/pages/Dashboard";
 import { HotelsListPage } from "@/pages/hotels/HotelsList";
 import { HotelDetailsPage } from "@/pages/hotels/HotelDetailsPage";
@@ -14,6 +15,14 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/profiles",
+    element: (
+      <ProtectedRoute>
+        <ProfileSelectionPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/",
@@ -44,7 +53,7 @@ export const router = createBrowserRouter([
         element: <AccountPage />,
       },
       {
-        path: "profiles",
+        path: "profiles-management",
         element: <ProfilesPage />,
       },
     ],

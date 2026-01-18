@@ -7,20 +7,10 @@ const getApiBaseUrl = () => {
   if (import.meta.env.DEV) {
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
     const fullUrl = `${baseUrl}/api/v1`;
-    console.log("🔧 API Configuration:", {
-      env: "development",
-      baseUrl,
-      fullUrl,
-      viteApiUrl: import.meta.env.VITE_API_URL,
-    });
     return fullUrl;
   }
   // En production, utiliser l'URL complète de l'API
   const prodUrl = "https://api.consignespro.com/api/v1";
-  console.log("🔧 API Configuration:", {
-    env: "production",
-    fullUrl: prodUrl,
-  });
   return prodUrl;
 };
 
@@ -58,10 +48,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Extraire le token du header si présent
-    const authHeader = response.headers["authorization"];
+    const authHeader = response.headers["authorization"] || response.headers["Authorization"];
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
       localStorage.setItem("accessToken", token);
+      // Mettre à jour aussi le refreshToken avec le nouveau token
+      localStorage.setItem("refreshToken", token);
     }
     return response;
   },
@@ -79,9 +71,6 @@ api.interceptors.response.use(
       // Vérifier si c'est une erreur de validation (mot de passe incorrect, etc.)
       // Dans ce cas, ne pas essayer de rafraîchir le token
       if ((error.response?.data as any)?.errorName === "INVALID_CREDENTIALS") {
-        console.log(
-          "🔐 Interceptor: INVALID_CREDENTIALS detected, not refreshing token"
-        );
         return Promise.reject(error);
       }
 
@@ -101,6 +90,8 @@ api.interceptors.response.use(
         const newToken = response.headers["authorization"]?.substring(7);
         if (newToken && originalRequest) {
           localStorage.setItem("accessToken", newToken);
+          // Mettre à jour aussi le refreshToken avec le nouveau token
+          localStorage.setItem("refreshToken", newToken);
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
           }

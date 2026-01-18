@@ -22,6 +22,8 @@ export const authService = {
     // Stocker les tokens
     if (token) {
       localStorage.setItem("accessToken", token);
+      // Stocker aussi comme refreshToken (utilisé pour rafraîchir le token)
+      localStorage.setItem("refreshToken", token);
     }
 
     return {
@@ -108,7 +110,8 @@ export const authService = {
    * Sélectionner un profil et obtenir un nouveau JWT
    */
   async selectProfile(
-    profileId: string
+    profileId: string,
+    pin?: string
   ): Promise<{ user: User; token: string }> {
     const response = await api.post<{
       status: string;
@@ -117,6 +120,7 @@ export const authService = {
       profile: Profile;
     }>("/auth/select-profile", {
       profileId,
+      ...(pin && { pin }),
     });
 
     // Extraire le nouveau token du header
@@ -127,6 +131,8 @@ export const authService = {
     // Stocker le nouveau token
     if (token) {
       localStorage.setItem("accessToken", token);
+      // Stocker aussi comme refreshToken (utilisé pour rafraîchir le token)
+      localStorage.setItem("refreshToken", token);
     }
 
     // Récupérer les informations mises à jour de l'utilisateur
@@ -175,43 +181,17 @@ export const authService = {
       });
       return { message: response.data.message };
     } catch (error: any) {
-      console.error("🔐 Change Password Error:", error);
-      console.error("🔐 Error details:", {
-        message: error.message,
-        code: error.code,
-        response: error.response?.data,
-        status: error.response?.status,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-      });
-
       // Gestion d'erreur spécifique pour le changement de mot de passe
       if (error.response?.status === 401) {
-        console.log("🔐 401 Error details:", {
-          errorName: error.response?.data?.errorName,
-          errorMessage: error.response?.data?.errorMessage,
-          fullResponse: error.response?.data,
-        });
-
         // PRIORITÉ 1: Vérifier si c'est une erreur de mot de passe actuel incorrect
         if (error.response?.data?.errorName === "INVALID_CREDENTIALS") {
-          console.log("🔐 Detected INVALID_CREDENTIALS - not logging out");
           throw new Error("Mot de passe actuel incorrect");
         }
 
         // PRIORITÉ 2: Afficher l'errorMessage du backend si disponible
         if (error.response?.data?.errorMessage) {
-          console.log(
-            "🔐 Using backend errorMessage:",
-            error.response.data.errorMessage
-          );
           throw new Error(error.response.data.errorMessage);
         }
-
-        // PRIORITÉ 3: Si c'est vraiment une session expirée (pas d'errorName/errorMessage spécifique)
-        console.warn(
-          "🔐 401 Error - Session expired, attempting token refresh"
-        );
 
         // Essayer de rafraîchir le token d'abord
         try {
@@ -251,11 +231,6 @@ export const authService = {
         }
         throw new Error("Utilisateur non trouvé.");
       } else if (error.code === "NETWORK_ERROR" || !error.response) {
-        console.error("🔐 Network error details:", {
-          code: error.code,
-          message: error.message,
-          config: error.config,
-        });
         throw new Error(
           "Impossible de se connecter au serveur. Vérifiez votre connexion."
         );

@@ -228,7 +228,7 @@ export function DashboardPage() {
 
           <PlanDistributionChart
             planCounts={
-              stats.planCounts || {
+              stats?.planCounts || {
                 free: 0,
                 trial: 0,
                 starter: 0,

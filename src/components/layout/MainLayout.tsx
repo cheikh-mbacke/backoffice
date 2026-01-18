@@ -2,9 +2,13 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import { useProfileChange } from "@/hooks/useProfileChange";
 
 export function MainLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Gérer les changements de profil et invalider les caches
+  useProfileChange();
 
   return (
     <div className="flex h-screen overflow-hidden">

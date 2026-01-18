@@ -24,6 +24,7 @@ import {
   Building2,
   Plus,
   CheckCircle2,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { profilePhotosService } from "@/services/profilePhotos.service";
@@ -49,6 +50,8 @@ export function ProfileSelectionDialog({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [profileRequiringPin, setProfileRequiringPin] = useState<Profile | null>(null);
+  const [pin, setPin] = useState("");
   const queryClient = useQueryClient();
   
   // Récupérer l'utilisateur actuel pour savoir quel profil est sélectionné
@@ -66,6 +69,7 @@ export function ProfileSelectionDialog({
       setLoading(true);
       const { profiles: availableProfiles, hasDefaultProfile: hasDefault } =
         await authService.getAvailableProfiles();
+      
       setProfiles(availableProfiles);
       setHasDefaultProfile(hasDefault);
 
@@ -80,10 +84,10 @@ export function ProfileSelectionDialog({
     }
   };
 
-  const handleSelectProfile = async (profileId: string) => {
+  const handleSelectProfile = async (profileId: string, pinValue?: string) => {
     try {
       setSelecting(profileId);
-      const { user } = await authService.selectProfile(profileId);
+      const { user } = await authService.selectProfile(profileId, pinValue);
 
       // Mettre à jour le cache de l'utilisateur avec la bonne clé
       queryClient.setQueryData(queryKeys.auth.currentUser, user);
@@ -94,10 +98,43 @@ export function ProfileSelectionDialog({
       onProfileSelected();
       // Fermer la modale après sélection
       onOpenChange?.(false);
-    } catch (error) {
-      toast.error("Erreur lors de la sélection du profil");
+      // Réinitialiser l'état du PIN
+      setProfileRequiringPin(null);
+      setPin("");
+    } catch (error: any) {
+      // Gérer les erreurs spécifiques de PIN
+      if (error.response?.data?.errorName === "PIN_REQUIRED") {
+        toast.error(error.response.data.errorMessage || "PIN requis pour ce profil");
+      } else if (error.response?.data?.errorName === "INVALID_PIN") {
+        toast.error(error.response.data.errorMessage || "PIN incorrect");
+      } else {
+        toast.error(error.response?.data?.errorMessage || "Erreur lors de la sélection du profil");
+      }
     } finally {
       setSelecting(null);
+    }
+  };
+
+  const handleProfileClick = (profile: Profile) => {
+    // Vérifier si le profil nécessite un PIN
+    // Vérifier à la fois pin_hash (format backend) et pinHash (format potentiel)
+    const hasPin = 
+      (profile.pin_hash !== null && profile.pin_hash !== undefined && profile.pin_hash !== "") ||
+      ((profile as any).pinHash !== null && (profile as any).pinHash !== undefined && (profile as any).pinHash !== "");
+    
+    if (hasPin) {
+      // Afficher la modale de saisie de PIN
+      setProfileRequiringPin(profile);
+      setPin("");
+    } else {
+      // Sélectionner directement le profil
+      handleSelectProfile(profile.id);
+    }
+  };
+
+  const handlePinSubmit = () => {
+    if (profileRequiringPin) {
+      handleSelectProfile(profileRequiringPin.id, pin);
     }
   };
 
@@ -356,7 +393,7 @@ export function ProfileSelectionDialog({
                       ? "border-2 border-primary shadow-md ring-2 ring-primary/20"
                       : ""
                   }`}
-                  onClick={() => handleSelectProfile(profile.id)}
+                  onClick={() => handleProfileClick(profile)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -434,7 +471,7 @@ export function ProfileSelectionDialog({
                         disabled={selecting === profile.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSelectProfile(profile.id);
+                          handleProfileClick(profile);
                         }}
                       >
                         {selecting === profile.id ? (
@@ -468,6 +505,86 @@ export function ProfileSelectionDialog({
           )}
         </div>
       </DialogContent>
+
+      {/* Modale de saisie de PIN */}
+      {profileRequiringPin && (
+        <Dialog
+          open={!!profileRequiringPin}
+          onOpenChange={(open) => {
+            if (!open) {
+              setProfileRequiringPin(null);
+              setPin("");
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                PIN requis
+              </DialogTitle>
+              <DialogDescription>
+                Le profil "{profileRequiringPin.name}" est protégé par un PIN.
+                Veuillez saisir votre PIN à 4 chiffres.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="pin">PIN (4 chiffres)</Label>
+                <Input
+                  id="pin"
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  placeholder="0000"
+                  value={pin}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    setPin(value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && pin.length === 4) {
+                      handlePinSubmit();
+                    }
+                  }}
+                  disabled={selecting === profileRequiringPin.id}
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setProfileRequiringPin(null);
+                    setPin("");
+                  }}
+                  className="flex-1"
+                  disabled={selecting === profileRequiringPin.id}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handlePinSubmit}
+                  disabled={selecting === profileRequiringPin.id || pin.length !== 4}
+                  className="flex-1"
+                >
+                  {selecting === profileRequiringPin.id ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Vérification...
+                    </>
+                  ) : (
+                    "Valider"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

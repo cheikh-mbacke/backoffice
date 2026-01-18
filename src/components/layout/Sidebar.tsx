@@ -1,6 +1,5 @@
 // src/components/layout/Sidebar.tsx
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -12,10 +11,7 @@ import {
   ChevronDown,
   User as UserIcon,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { invalidateCurrentUserData } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
-import { ProfileSelectionDialog } from "@/components/auth/ProfileSelectionDialog";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -35,7 +31,7 @@ const navigation: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Hôtels", href: "/hotels", icon: Building2 },
   { name: "Managers Hôtels", href: "/users", icon: Users },
-  { name: "Mes Profils", href: "/profiles", icon: UserIcon },
+  { name: "Mes Profils", href: "/profiles-management", icon: UserIcon },
   { name: "Mon Compte", href: "/account", icon: Shield },
 ];
 
@@ -46,9 +42,8 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const queryClient = useQueryClient();
-  const [showProfileSelection, setShowProfileSelection] = useState(false);
 
   // Fonction pour obtenir le label du rôle (simplifié)
   const getRoleLabel = (role?: string) => {
@@ -64,14 +59,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
-  const handleProfileSelected = async () => {
-    setShowProfileSelection(false);
-    // Invalider le cache pour forcer le rechargement des données utilisateur
-    await invalidateCurrentUserData(queryClient);
-  };
-
-  const handleProfileDialogOpenChange = (open: boolean) => {
-    setShowProfileSelection(open);
+  const handleProfileClick = () => {
+    navigate("/profiles", { state: { mode: "switch" } });
+    onClose();
   };
 
   const displayName =
@@ -82,12 +72,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      <ProfileSelectionDialog
-        open={showProfileSelection}
-        onProfileSelected={handleProfileSelected}
-        onOpenChange={handleProfileDialogOpenChange}
-      />
-
       {/* Overlay pour mobile */}
       {isOpen && (
         <div
@@ -148,7 +132,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => setShowProfileSelection(true)}
+                  onClick={handleProfileClick}
                   className={cn(
                     "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                     "text-gray-300 dark:text-gray-400 hover:bg-gray-800 dark:hover:bg-gray-700 hover:text-white"

@@ -82,13 +82,15 @@ export interface Profile {
   id: string;
   name: string;
   userId: string;
-  hotelId: string;
+  hotelId: string | null;
   role: UserRole;
   isActive: boolean;
   isDefault: boolean;
   avatarUrl?: string; // URL de la photo de profil
-  createdAt: string;
-  updatedAt: string;
+  email?: string; // Email spécifique au profil (optionnel)
+  pin_hash?: string | null; // PIN hash pour vérifier si un PIN existe
+  createdAt?: string;
+  updatedAt?: string;
   user?: User;
   hotel?: Hotel;
 }
